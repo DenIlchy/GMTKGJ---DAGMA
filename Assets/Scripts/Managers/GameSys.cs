@@ -36,6 +36,7 @@ public class GameSys : MonoBehaviour
     [SerializeField] private float warningDuration = 3f;
     [Tooltip("Random range (min, max) for the Red Light duration in seconds.")]
     [SerializeField] private Vector2 redLightDurationRange = new Vector2(4f, 8f);
+    [SerializeField] private Vector2 postRedLightDelayRange = new Vector2(0f, 3f);
     [Tooltip("How long the 'You moved!' feedback is shown before the penalty is applied.")]
     [SerializeField] private float penaltyFeedbackDuration = 1f;
 
@@ -165,6 +166,9 @@ public class GameSys : MonoBehaviour
 
             // --- Hold Red Light for the remaining duration ---
             yield return RunPhaseTimer(redDuration);
+            if (gameEnded) yield break;
+
+            yield return new WaitForSeconds(UnityEngine.Random.Range(postRedLightDelayRange.x, postRedLightDelayRange.y));
             if (gameEnded) yield break;
         }
     }

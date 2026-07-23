@@ -2,7 +2,7 @@
 - Project name: GMTKGJ---DAGMA
 - Unity version: Unity 6000.3.20f1
 - Active game object:
-  - Name: UIManager
+  - Name: HUD
   - Tag: Untagged
-  - Layer: Default
+  - Layer: UI
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
