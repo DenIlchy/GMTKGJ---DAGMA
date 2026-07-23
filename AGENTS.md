@@ -2,7 +2,7 @@
 - Project name: GMTKGJ---DAGMA
 - Unity version: Unity 6000.3.20f1
 - Active game object:
-  - Name: HUD
+  - Name: Microwave
   - Tag: Untagged
-  - Layer: UI
+  - Layer: Player
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
