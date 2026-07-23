@@ -1,11 +1,12 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Input Keys")]
-    [SerializeField] private KeyCode leftKey = KeyCode.Q;
-    [SerializeField] private KeyCode rightKey = KeyCode.E;
+    [SerializeField] private Key leftKey = Key.Q;
+    [SerializeField] private Key rightKey = Key.E;
 
     [Header("Momentum")]
     [Tooltip("Speed added per successful alternating tap.")]
@@ -22,7 +23,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Scrollbar speedScrollbar;
 
     private float currentSpeed;
-    private KeyCode? lastPressedKey;
+    private Key? lastPressedKey;
 
     private void Update()
     {
@@ -34,8 +35,11 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleInput()
     {
-        bool leftPressed = Input.GetKeyDown(leftKey);
-        bool rightPressed = Input.GetKeyDown(rightKey);
+        if (Keyboard.current == null)
+            return;
+
+        bool leftPressed = Keyboard.current[leftKey].wasPressedThisFrame;
+        bool rightPressed = Keyboard.current[rightKey].wasPressedThisFrame;
 
         if (leftPressed && rightPressed)
             return;
@@ -86,7 +90,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (speedScrollbar != null)
         {
-            speedScrollbar.size = currentSpeed / maxSpeed;
+            speedScrollbar.value = currentSpeed / maxSpeed;
         }
     }
 
