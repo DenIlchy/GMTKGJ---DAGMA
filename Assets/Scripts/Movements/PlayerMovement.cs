@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviour, IMovable
 {
     [Header("Input Keys")]
     [SerializeField] private Key leftKey = Key.Q;
@@ -24,11 +24,15 @@ public class PlayerMovement : MonoBehaviour
 
     private float currentSpeed;
     private Key? lastPressedKey;
+    private bool movementBlocked;
 
     private void Update()
     {
-        HandleInput();
-        MoveForward();
+        if (!movementBlocked)
+        {
+            HandleInput();
+            MoveForward();
+        }
         ApplyDeceleration();
         UpdateSpeedUI();
     }
@@ -96,4 +100,24 @@ public class PlayerMovement : MonoBehaviour
 
     public float GetCurrentSpeed() => currentSpeed;
     public float GetMaxSpeed() => maxSpeed;
+
+    public bool IsPlayer => true;
+    public Transform MoverTransform => transform;
+
+    public void PushBack(float distance)
+    {
+        currentSpeed = 0f;
+        lastPressedKey = null;
+        transform.position -= transform.forward * distance;
+    }
+
+    public void SetMovementBlocked(bool blocked)
+    {
+        movementBlocked = blocked;
+        if (blocked)
+        {
+            currentSpeed = 0f;
+            lastPressedKey = null;
+        }
+    }
 }
