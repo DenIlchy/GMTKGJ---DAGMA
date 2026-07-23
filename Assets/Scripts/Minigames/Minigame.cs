@@ -10,7 +10,7 @@ public abstract class Minigame : MonoBehaviour
     public event Action OnMinigameFailed;
 
     public bool IsCompleted { get; protected set; }
-    public bool IsActive { get; protected set; }
+    public bool IsActive => gameObject.activeInHierarchy;
 
     /// <summary>
     /// Called when the minigame is opened and initialized.
@@ -18,7 +18,6 @@ public abstract class Minigame : MonoBehaviour
     public virtual void StartMinigame()
     {
         IsCompleted = false;
-        IsActive = true;
         gameObject.SetActive(true);
     }
 
@@ -27,7 +26,6 @@ public abstract class Minigame : MonoBehaviour
     /// </summary>
     public virtual void CloseMinigame()
     {
-        IsActive = false;
         gameObject.SetActive(false);
     }
 

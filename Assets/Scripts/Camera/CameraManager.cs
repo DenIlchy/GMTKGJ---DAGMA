@@ -43,7 +43,7 @@ public class CameraManager : MonoBehaviour
         mainCameraBrain = Object.FindFirstObjectByType<CinemachineBrain>();
 
         // Default to 3rd-person gameplay camera view on start
-        SwitchToGameplayCamera();
+        SwitchToGameplayCameraDirect();
     }
 
     private void Update()
@@ -78,10 +78,23 @@ public class CameraManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Switches directly back to the 3rd-person gameplay camera view.
+    /// Switches back to 3rd-person gameplay camera using the reverse arc sweep (Minigame -> Arc Apex -> Gameplay).
     /// </summary>
-    [ContextMenu("Test Gameplay Camera")]
+    [ContextMenu("Test Gameplay Camera (Reverse Arc Sweep)")]
     public void SwitchToGameplayCamera()
+    {
+        if (transitionCoroutine != null)
+        {
+            StopCoroutine(transitionCoroutine);
+        }
+
+        transitionCoroutine = StartCoroutine(ReverseArcWaypointSequence());
+    }
+
+    /// <summary>
+    /// Direct instant priority reset to gameplay camera without playing reverse sweep.
+    /// </summary>
+    public void SwitchToGameplayCameraDirect()
     {
         if (transitionCoroutine != null)
         {
@@ -89,19 +102,13 @@ public class CameraManager : MonoBehaviour
             transitionCoroutine = null;
         }
 
-        if (MinigameManager.Instance != null)
-        {
-            MinigameManager.Instance.HideMinigame();
-        }
-
         SetPriorities(gameplayPriority: 20, apexPriority: 5, minigamePriority: 5);
-        Debug.Log("Switched to Gameplay Camera View (3rd Person)");
     }
 
     /// <summary>
-    /// Triggers the 3-camera waypoint sequence: Gameplay -> Arc Apex -> Minigame Close-Up.
+    /// Triggers the forward 3-camera waypoint sequence: Gameplay -> Arc Apex -> Minigame Close-Up.
     /// </summary>
-    [ContextMenu("Test Minigame Camera (Arc Sweep)")]
+    [ContextMenu("Test Minigame Camera (Forward Arc Sweep)")]
     public void SwitchToMinigameCamera()
     {
         if (transitionCoroutine != null)
@@ -109,17 +116,11 @@ public class CameraManager : MonoBehaviour
             StopCoroutine(transitionCoroutine);
         }
 
-        transitionCoroutine = StartCoroutine(ArcWaypointSequence());
+        transitionCoroutine = StartCoroutine(ForwardArcWaypointSequence());
     }
 
-    private IEnumerator ArcWaypointSequence()
+    private IEnumerator ForwardArcWaypointSequence()
     {
-        // Hide any active minigame during camera sweep
-        if (MinigameManager.Instance != null)
-        {
-            MinigameManager.Instance.HideMinigame();
-        }
-
         // Step 1: Blend from Gameplay to Arc Apex (Over-The-Shoulder Peak)
         SetPriorities(gameplayPriority: 5, apexPriority: 15, minigamePriority: 5);
         yield return new WaitForSeconds(stepDuration);
@@ -141,7 +142,6 @@ public class CameraManager : MonoBehaviour
             }
         }
 
-        // Small polish pause before UI pops up
         if (uiPopupDelay > 0f)
         {
             yield return new WaitForSeconds(uiPopupDelay);
@@ -154,6 +154,30 @@ public class CameraManager : MonoBehaviour
         {
             MinigameManager.Instance.ShowMinigame();
         }
+    }
+
+    private IEnumerator ReverseArcWaypointSequence()
+    {
+        // Step 1: Blend from Minigame Close-Up back to Arc Apex (Over-The-Shoulder Peak)
+        SetPriorities(gameplayPriority: 5, apexPriority: 15, minigamePriority: 5);
+        yield return new WaitForSeconds(stepDuration);
+
+        // Step 2: Blend from Arc Apex back to 3rd-Person Gameplay View
+        SetPriorities(gameplayPriority: 20, apexPriority: 5, minigamePriority: 5);
+        yield return new WaitForSeconds(stepDuration);
+
+        // Dynamically wait until CinemachineBrain finishes blending completely
+        if (mainCameraBrain != null)
+        {
+            yield return new WaitForEndOfFrame();
+            while (mainCameraBrain.IsBlending)
+            {
+                yield return null;
+            }
+        }
+
+        transitionCoroutine = null;
+        Debug.Log("[CameraManager] Reverse arc sweep complete. Returned to 3rd-person gameplay view.");
     }
 
     private void SetPriorities(int gameplayPriority, int apexPriority, int minigamePriority)
