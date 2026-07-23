@@ -812,6 +812,7 @@ MonoBehaviour:
   greenLightDurationRange: {x: 4, y: 10}
   warningDuration: 3
   redLightDurationRange: {x: 4, y: 8}
+  postRedLightDelayRange: {x: 0, y: 3}
   penaltyFeedbackDuration: 1
   introDuration: 2
   speedThreshold: 1.5
