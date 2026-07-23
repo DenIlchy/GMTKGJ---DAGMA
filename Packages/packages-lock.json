@@ -7,6 +7,12 @@
       "dependencies": {},
       "hash": "55cd393fe53c4ed7ee9a38124b4d8e5f05f5a323"
     },
+    "com.merry-yellow.code-assist": {
+      "version": "file:com.merry-yellow.code-assist",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.ai.navigation": {
       "version": "2.0.13",
       "depth": 0,
