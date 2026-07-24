@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameUI : MonoBehaviour
 {
@@ -11,14 +12,28 @@ public class GameUI : MonoBehaviour
     [SerializeField] private TMP_Text phaseTimerText;
     [Tooltip("Current state label (Green Light! / Red Light! / etc.).")]
     [SerializeField] private TMP_Text stateText;
+    [Tooltip("Countdown for the full round.")]
+    [SerializeField] private TMP_Text roundTimerText;
     [Tooltip("Feedback label shown when the player moved during Red Light.")]
-    [SerializeField] private TMP_Text youMovedText;
+    [SerializeField] private GameObject youMovedObject;
     [Tooltip("Result label shown on Victory or Game Over.")]
     [SerializeField] private TMP_Text resultText;
     [Tooltip("Panel shown on Victory or Game Over.")]
     [SerializeField] private GameObject resultPanel;
     [Tooltip("Panel shown when the game is paused.")]
     [SerializeField] private GameObject pausePanel;
+
+    [Header("Race Progress")]
+    [SerializeField] private Transform trackStart;
+    [SerializeField] private Transform trackEnd;
+    [SerializeField] private PlayerMovement playerMover;
+    [SerializeField] private OpponentMovement opponentOneMover;
+    [SerializeField] private OpponentMovement opponentTwoMover;
+    [SerializeField] private OpponentMovement opponentThreeMover;
+    [SerializeField] private Slider playerPositionSlider;
+    [SerializeField] private Slider opponentOnePositionSlider;
+    [SerializeField] private Slider opponentTwoPositionSlider;
+    [SerializeField] private Slider opponentThreePositionSlider;
 
     [Header("Colors")]
     [SerializeField] private Color greenColor = Color.green;
@@ -40,11 +55,16 @@ public class GameUI : MonoBehaviour
         }
 
         gameSys.OnPhaseTimerUpdated += HandlePhaseTimerUpdated;
+        gameSys.OnRoundTimerUpdated += HandleRoundTimerUpdated;
+        gameSys.OnRoundTimeExpired += HandleRoundTimeExpired;
         gameSys.OnPenaltyFeedbackStarted += HandlePenaltyFeedbackStarted;
         gameSys.OnPenaltyApplied += HandlePenaltyApplied;
 
-        if (youMovedText != null)
-            youMovedText.gameObject.SetActive(false);
+        if (roundTimerText != null)
+            roundTimerText.text = "00";
+
+        if (youMovedObject != null)
+            youMovedObject.SetActive(false);
 
         if (resultText != null)
             resultText.gameObject.SetActive(false);
@@ -64,6 +84,8 @@ public class GameUI : MonoBehaviour
             return;
 
         gameSys.OnPhaseTimerUpdated -= HandlePhaseTimerUpdated;
+        gameSys.OnRoundTimerUpdated -= HandleRoundTimerUpdated;
+        gameSys.OnRoundTimeExpired -= HandleRoundTimeExpired;
         gameSys.OnPenaltyFeedbackStarted -= HandlePenaltyFeedbackStarted;
         gameSys.OnPenaltyApplied -= HandlePenaltyApplied;
     }
@@ -78,6 +100,7 @@ public class GameUI : MonoBehaviour
 
         GameState state = gameSys.CurrentState;
         UpdateStateText(state);
+        UpdateRaceProgress();
         ShowResultIfNeeded(state);
     }
 
@@ -141,20 +164,53 @@ public class GameUI : MonoBehaviour
             phaseTimerText.text = Mathf.CeilToInt(remaining).ToString();
     }
 
+    private void HandleRoundTimerUpdated(float remaining)
+    {
+        if (roundTimerText != null)
+            roundTimerText.text = $"{Mathf.CeilToInt(remaining):00}";
+    }
+
+    private void HandleRoundTimeExpired()
+    {
+        ShowResult("Time Expired", redColor);
+        resultShown = true;
+    }
+
     private void HandlePenaltyFeedbackStarted(List<IMovable> violators)
     {
         bool playerViolated = violators.Exists(v => v.IsPlayer);
-        if (youMovedText != null && playerViolated)
-        {
-            youMovedText.text = "You moved!";
-            youMovedText.gameObject.SetActive(true);
-        }
+        if (youMovedObject != null && playerViolated)
+            youMovedObject.SetActive(true);
     }
 
     private void HandlePenaltyApplied(List<IMovable> violators)
     {
-        if (youMovedText != null)
-            youMovedText.gameObject.SetActive(false);
+        if (youMovedObject != null)
+            youMovedObject.SetActive(false);
+    }
+
+    private void UpdateRaceProgress()
+    {
+        if (trackStart == null || trackEnd == null)
+            return;
+
+        float trackLength = trackEnd.position.z - trackStart.position.z;
+        if (Mathf.Approximately(trackLength, 0f))
+            return;
+
+        UpdateProgressSlider(playerMover, playerPositionSlider, trackLength);
+        UpdateProgressSlider(opponentOneMover, opponentOnePositionSlider, trackLength);
+        UpdateProgressSlider(opponentTwoMover, opponentTwoPositionSlider, trackLength);
+        UpdateProgressSlider(opponentThreeMover, opponentThreePositionSlider, trackLength);
+    }
+
+    private void UpdateProgressSlider(IMovable mover, Slider slider, float trackLength)
+    {
+        if (mover == null || slider == null)
+            return;
+
+        float progress = (mover.MoverTransform.position.z - trackStart.position.z) / trackLength;
+        slider.SetValueWithoutNotify(Mathf.Clamp01(progress));
     }
 
     private void ShowResult(string message, Color color)

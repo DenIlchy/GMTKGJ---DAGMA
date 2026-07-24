@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(CapsuleCollider))]
 public class PlayerMovement : MonoBehaviour, IMovable
 {
     [Header("Input Keys")]
@@ -25,6 +26,12 @@ public class PlayerMovement : MonoBehaviour, IMovable
     private float currentSpeed;
     private Key? lastPressedKey;
     private bool movementBlocked;
+
+    private void Awake()
+    {
+        if (GetComponent<Collider>() == null)
+            gameObject.AddComponent<CapsuleCollider>();
+    }
 
     private void Update()
     {
@@ -94,7 +101,7 @@ public class PlayerMovement : MonoBehaviour, IMovable
     {
         if (speedScrollbar != null)
         {
-            speedScrollbar.value = currentSpeed / maxSpeed;
+            speedScrollbar.size = currentSpeed / maxSpeed;
         }
     }
 

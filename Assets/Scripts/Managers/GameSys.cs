@@ -43,6 +43,7 @@ public class GameSys : MonoBehaviour
     [Header("Level")]
     [Tooltip("Delay before the first Green Light starts (Intro state).")]
     [SerializeField] private float introDuration = 2f;
+    [SerializeField] private float roundDuration = 60f;
 
     [Header("Penalty")]
     [Tooltip("Absolute speed above which a mover is considered violating during Red Light.")]
@@ -61,7 +62,9 @@ public class GameSys : MonoBehaviour
     public event Action<List<IMovable>> OnPenaltyApplied;
     public event Action OnVictory;
     public event Action OnGameOver;
+    public event Action OnRoundTimeExpired;
     public event Action<float> OnPhaseTimerUpdated;
+    public event Action<float> OnRoundTimerUpdated;
 
     private readonly List<IMovable> movers = new List<IMovable>();
     private Coroutine gameLoopCoroutine;
@@ -112,11 +115,31 @@ public class GameSys : MonoBehaviour
         movers.Remove(mover);
     }
 
+    private IEnumerator RunRoundTimer()
+    {
+        float remaining = Mathf.Max(0f, roundDuration);
+        OnRoundTimerUpdated?.Invoke(remaining);
+
+        while (remaining > 0f && !gameEnded)
+        {
+            remaining -= Time.deltaTime;
+            OnRoundTimerUpdated?.Invoke(Mathf.Max(0f, remaining));
+            yield return null;
+        }
+
+        if (!gameEnded)
+        {
+            OnRoundTimeExpired?.Invoke();
+            EndGame(false);
+        }
+    }
+
     private IEnumerator GameLoop()
     {
         SetState(GameState.Intro);
         SetAllMovementBlocked(true);
         yield return RunPhaseTimer(introDuration);
+        StartCoroutine(RunRoundTimer());
 
         while (!gameEnded)
         {

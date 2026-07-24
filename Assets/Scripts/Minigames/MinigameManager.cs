@@ -11,6 +11,9 @@ public class MinigameManager : MonoBehaviour
     [Tooltip("Automatically switch back to 3rd-person gameplay camera when minigame is completed.")]
     [SerializeField] private bool autoReturnToGameplayCam = true;
 
+    [Header("HUD")]
+    [SerializeField] private GameObject gameplayHud;
+
     public event Action OnActiveMinigameCompleted;
 
     public static MinigameManager Instance { get; private set; }
@@ -57,6 +60,8 @@ public class MinigameManager : MonoBehaviour
         if (currentMinigame != null)
         {
             currentMinigame.StartMinigame();
+            if (gameplayHud != null)
+                gameplayHud.SetActive(false);
             Debug.Log("[MinigameManager] Minigame UI Opened.");
         }
         else
@@ -73,6 +78,8 @@ public class MinigameManager : MonoBehaviour
         if (currentMinigame != null)
         {
             currentMinigame.CloseMinigame();
+            if (gameplayHud != null)
+                gameplayHud.SetActive(true);
             Debug.Log("[MinigameManager] Minigame UI Closed.");
         }
     }
