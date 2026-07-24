@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
@@ -8,11 +9,7 @@ public class PopcornMinigame : Minigame
 
     [Header("Testing & Design")]
     [SerializeField] private MovementMode movementMode = MovementMode.Falling;
-
-    [Tooltip("Enable to spawn occasional burnt kernels that penalize the player.")]
     [SerializeField] private bool enableHazards = true;
-
-    [Tooltip("The maximum number of burnt kernels allowed on the screen at the same time.")]
     [SerializeField] private int maxBurntKernelsOnScreen = 2;
 
     [Header("Spawning Settings")]
@@ -31,10 +28,14 @@ public class PopcornMinigame : Minigame
     private int currentBurntKernelsCount;
     private List<Kernel> activeKernels = new List<Kernel>();
 
+    // Using a local flag prevents us from wrestling with the base class's IsActive property
+    private bool isWinning = false;
+
     public override void StartMinigame()
     {
         base.StartMinigame();
 
+        isWinning = false;
         remainingPops = targetPopsToWin;
         currentBurntKernelsCount = 0;
 
@@ -60,11 +61,10 @@ public class PopcornMinigame : Minigame
         float randomX = Random.Range(boundsArea.rect.xMin, boundsArea.rect.xMax);
         newKernel.GetComponent<RectTransform>().anchoredPosition = new Vector2(randomX, boundsArea.rect.yMin);
 
-        // Only allow a burnt kernel if hazards are enabled AND we haven't hit the cap
         bool isBurnt = false;
         if (enableHazards && currentBurntKernelsCount < maxBurntKernelsOnScreen)
         {
-            if (Random.value < 0.15f) // 15% chance
+            if (Random.value < 0.15f)
             {
                 isBurnt = true;
                 currentBurntKernelsCount++;
@@ -79,23 +79,18 @@ public class PopcornMinigame : Minigame
 
     private void HandleKernelPopped(Kernel poppedKernel)
     {
-        if (!IsActive) return;
+        // Block clicks if the minigame is closed OR if we are waiting for the win animation
+        if (!IsActive || isWinning) return;
 
         if (poppedKernel.IsBurnt)
         {
-            // Free up a slot for a new hazard
             currentBurntKernelsCount--;
-
             if (sfxSource != null && errorSound != null) sfxSource.PlayOneShot(errorSound);
-
-            // Penalty: Add to the countdown!
             remainingPops++;
         }
         else
         {
             if (sfxSource != null && popSound != null) sfxSource.PlayOneShot(popSound);
-
-            // Success: Deduct from the countdown
             remainingPops--;
         }
 
@@ -104,7 +99,9 @@ public class PopcornMinigame : Minigame
 
         if (remainingPops <= 0)
         {
-            CompleteMinigame();
+            // Flag that the game is effectively over to block further input
+            isWinning = true;
+            StartCoroutine(WinDelayRoutine());
         }
         else
         {
@@ -112,11 +109,18 @@ public class PopcornMinigame : Minigame
         }
     }
 
+    private IEnumerator WinDelayRoutine()
+    {
+        // Wait 0.5 seconds for the final popcorn to fly up and fade out
+        yield return new WaitForSeconds(0.5f);
+
+        CompleteMinigame();
+    }
+
     private void UpdateCounterUI()
     {
         if (counterText != null)
         {
-            // Just display the remaining number
             counterText.text = remainingPops.ToString();
         }
     }
@@ -125,9 +129,15 @@ public class PopcornMinigame : Minigame
     {
         foreach (var kernel in activeKernels)
         {
-            if (kernel != null) Destroy(kernel.gameObject);
+            if (kernel != null) kernel.OnKernelPopped -= HandleKernelPopped;
         }
         activeKernels.Clear();
-        currentBurntKernelsCount = 0; // Reset the cap counter
+
+        foreach (Transform child in boundsArea)
+        {
+            Destroy(child.gameObject);
+        }
+
+        currentBurntKernelsCount = 0;
     }
 }
