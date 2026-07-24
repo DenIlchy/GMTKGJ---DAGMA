@@ -24,19 +24,18 @@ public class TemperatureMinigame : Minigame
     [SerializeField] private Sprite burntSprite;   // Door open, ash pile
 
     [Header("Gameplay Settings")]
-    [Tooltip("Starting speed of the slider.")]
     [SerializeField] private float initialSpeed = 0.2f;
-
-    [Tooltip("How quickly the slider accelerates over time.")]
     [SerializeField] private float acceleration = 0.8f;
-
-    [Tooltip("The start of the winning zone (0.0 to 1.0)")]
     [SerializeField] private float perfectZoneMin = 0.65f;
-    [Tooltip("The end of the winning zone (0.0 to 1.0)")]
     [SerializeField] private float perfectZoneMax = 0.8f;
-
-    [Tooltip("How long to show the food result before resetting or winning.")]
     [SerializeField] private float resultDelay = 1.25f;
+
+    [Header("Audio Settings")]
+    [Tooltip("The AudioSource used to play minigame sound effects.")]
+    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioClip buttonClickClip;
+    [SerializeField] private AudioClip successClip;
+    [SerializeField] private AudioClip failureClip;
 
     private bool isEvaluating = false;
     private float currentSpeed;
@@ -45,7 +44,6 @@ public class TemperatureMinigame : Minigame
     {
         base.StartMinigame();
 
-        // Automatically position the target lines based on our min/max variables
         PositionTargetLine(minTargetLine, perfectZoneMin);
         PositionTargetLine(maxTargetLine, perfectZoneMax);
 
@@ -56,11 +54,11 @@ public class TemperatureMinigame : Minigame
     {
         if (!IsActive || isEvaluating) return;
 
-        // Exponential movement logic: increase speed over time, then apply speed to slider
+        // Exponential movement
         currentSpeed += acceleration * Time.deltaTime;
         temperatureSlider.value += currentSpeed * Time.deltaTime;
 
-        // Auto-fail if the bar reaches the absolute maximum before they click
+        // Auto-fail if the bar reaches the top
         if (temperatureSlider.value >= 1f && !isEvaluating)
         {
             temperatureSlider.value = 1f;
@@ -68,50 +66,60 @@ public class TemperatureMinigame : Minigame
         }
     }
 
-    /// <summary>
-    /// This method will be triggered by your UI Button OnClick event.
-    /// </summary>
     public void OnDoorButtonClicked()
     {
-        // Prevent double-clicking
         if (!IsActive || isEvaluating) return;
 
         float stopValue = temperatureSlider.value;
 
         if (stopValue >= perfectZoneMin && stopValue <= perfectZoneMax)
         {
-            // Win condition
             StartCoroutine(ShowResultCoroutine(perfectSprite, true));
         }
         else if (stopValue < perfectZoneMin)
         {
-            // Clicked too early
             StartCoroutine(ShowResultCoroutine(frozenSprite, false));
         }
         else
         {
-            // Clicked too late
             StartCoroutine(ShowResultCoroutine(burntSprite, false));
         }
     }
 
     private IEnumerator ShowResultCoroutine(Sprite resultSprite, bool isWin)
     {
-        isEvaluating = true;
+        isEvaluating = true; // Instantly stops the bar from moving
 
-        // Show the result
+        // 1. Immediately show the result visual (door opens)
         if (microwaveDisplayImage != null) microwaveDisplayImage.sprite = resultSprite;
 
-        // Pause so the player can see what happened
+        // 2. Play the click sound and wait for it to finish
+        if (sfxSource != null && buttonClickClip != null)
+        {
+            sfxSource.PlayOneShot(buttonClickClip);
+            yield return new WaitForSeconds(buttonClickClip.length);
+        }
+
+        // 3. Now play the success or failure sound
+        if (sfxSource != null)
+        {
+            AudioClip clipToPlay = isWin ? successClip : failureClip;
+            if (clipToPlay != null)
+            {
+                sfxSource.PlayOneShot(clipToPlay);
+            }
+        }
+
+        // 4. Wait for the player to process the result before resetting/winning
         yield return new WaitForSeconds(resultDelay);
 
         if (isWin)
         {
-            CompleteMinigame(); // From base class, triggers success
+            CompleteMinigame();
         }
         else
         {
-            ResetRound(); // Try again
+            ResetRound();
         }
     }
 
@@ -119,7 +127,7 @@ public class TemperatureMinigame : Minigame
     {
         isEvaluating = false;
         temperatureSlider.value = 0f;
-        currentSpeed = initialSpeed; // Reset our acceleration
+        currentSpeed = initialSpeed;
 
         if (microwaveDisplayImage != null) microwaveDisplayImage.sprite = cookingSprite;
     }
@@ -128,12 +136,9 @@ public class TemperatureMinigame : Minigame
     {
         if (lineRect == null) return;
 
-        // Set the Y anchors to the exact percentage on the slider
         lineRect.anchorMin = new Vector2(0, normalizedPosition);
         lineRect.anchorMax = new Vector2(1, normalizedPosition);
-
-        // Reset offsets so it sits exactly on the anchor
         lineRect.anchoredPosition = Vector2.zero;
-        lineRect.sizeDelta = new Vector2(0, 2f); // Keep it full width, 2 pixels tall
+        lineRect.sizeDelta = new Vector2(0, 2f);
     }
 }
