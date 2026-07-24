@@ -51,6 +51,7 @@ public class GameSys : MonoBehaviour
     [SerializeField] private float pushBackDistance = 2f;
 
     public GameState CurrentState { get; private set; } = GameState.Intro;
+    public int CurrentCycle { get; private set; } = 0;
 
     public event Action<GameState> OnStateChanged;
     public event Action<float> OnGreenLightStarted;
@@ -120,6 +121,8 @@ public class GameSys : MonoBehaviour
         while (!gameEnded)
         {
             // --- Green Light ---
+            CurrentCycle++;
+            Debug.Log($"[GameSys] --- Cycle #{CurrentCycle} Started (Green Light) ---");
             float greenDuration = UnityEngine.Random.Range(greenLightDurationRange.x, greenLightDurationRange.y);
             float safeDuration = Mathf.Max(0f, greenDuration - warningDuration);
 

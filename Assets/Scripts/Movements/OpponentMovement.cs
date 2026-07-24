@@ -153,6 +153,13 @@ public class OpponentMovement : MonoBehaviour, IMovable
         transform.position -= transform.forward * distance;
     }
 
+    public void ApplyStunAnimation(float duration)
+    {
+        var anim = GetComponentInChildren<Animator>();
+        if (anim != null) anim.SetTrigger("Stun");
+        Debug.Log($"[OpponentMovement] Stun animation applied to opponent for {duration}s!");
+    }
+
     public void SetMovementBlocked(bool blocked)
     {
         movementBlocked = blocked;

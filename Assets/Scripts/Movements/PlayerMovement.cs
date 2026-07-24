@@ -111,8 +111,32 @@ public class PlayerMovement : MonoBehaviour, IMovable
         transform.position -= transform.forward * distance;
     }
 
+    public void ApplyStunAnimation(float duration)
+    {
+        StartCoroutine(StunAnimationRoutine(duration));
+    }
+
+    private System.Collections.IEnumerator StunAnimationRoutine(float duration)
+    {
+        isStunned = true;
+        var anim = GetComponentInChildren<Animator>();
+        if (anim != null) anim.SetTrigger("Stun");
+        Debug.Log($"[PlayerMovement] Stun animation applied to Char for {duration}s!");
+        yield return new WaitForSeconds(duration);
+        isStunned = false;
+    }
+
+    private bool isStunned;
+
     public void SetMovementBlocked(bool blocked)
     {
+        // Allow unblocking ONLY if current state is GreenLight and player is not stunned
+        if (!blocked && (isStunned || (GameSys.Instance != null && GameSys.Instance.CurrentState != GameState.GreenLight)))
+        {
+            movementBlocked = true;
+            return;
+        }
+
         movementBlocked = blocked;
         if (blocked)
         {

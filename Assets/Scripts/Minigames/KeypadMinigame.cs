@@ -52,10 +52,19 @@ public class KeypadMinigame : Minigame
 
     private int currentSolveCount = 0;
     private bool isWired = false;
+    private float lastInputTime = 0f;
+    private const float inputCooldown = 0.05f;
 
     private void Awake()
     {
         AutoFindDisplays();
+        WireButtons();
+    }
+
+    private void OnEnable()
+    {
+        AutoFindDisplays();
+        isWired = false;
         WireButtons();
     }
 
@@ -106,6 +115,16 @@ public class KeypadMinigame : Minigame
             timeButton.onClick.RemoveAllListeners();
             timeButton.onClick.AddListener(PressTime);
         }
+    }
+
+    private bool IsDebounced()
+    {
+        if (Time.unscaledTime - lastInputTime < inputCooldown)
+        {
+            return true;
+        }
+        lastInputTime = Time.unscaledTime;
+        return false;
     }
 
     public override void StartMinigame()
@@ -179,7 +198,7 @@ public class KeypadMinigame : Minigame
     /// </summary>
     public void PressDigit(int digit)
     {
-        if (IsCompleted) return;
+        if (IsCompleted || IsDebounced()) return;
 
         // Play SFX Placeholder
         if (SoundManager.Instance != null) SoundManager.Instance.PlayKeypadClickSFX();
@@ -203,7 +222,7 @@ public class KeypadMinigame : Minigame
     /// </summary>
     public void PressClear()
     {
-        if (IsCompleted) return;
+        if (IsCompleted || IsDebounced()) return;
 
         // Play SFX Placeholder
         if (SoundManager.Instance != null) SoundManager.Instance.PlayKeypadClickSFX();
@@ -220,7 +239,7 @@ public class KeypadMinigame : Minigame
     /// </summary>
     public void PressTime()
     {
-        if (IsCompleted) return;
+        if (IsCompleted || IsDebounced()) return;
 
         // Play SFX Placeholder
         if (SoundManager.Instance != null) SoundManager.Instance.PlayKeypadClickSFX();
