@@ -23,14 +23,31 @@ public class PlayerMovement : MonoBehaviour, IMovable
     [Tooltip("Drag the Scrollbar here to visualize current speed.")]
     [SerializeField] private Scrollbar speedScrollbar;
 
+    [Header("Animation")]
+    [Tooltip("Optional Animator reference. Auto-found in children if left unassigned.")]
+    [SerializeField] private Animator animator;
+    [Tooltip("Float parameter name in Animator Blend Tree (0.0 = idle/0%, 1.0 = max speed/100%).")]
+    [SerializeField] private string speedParamName = "Speed";
+
     private float currentSpeed;
     private Key? lastPressedKey;
     private bool movementBlocked;
+    private int speedParamHash;
 
     private void Awake()
     {
         if (GetComponent<Collider>() == null)
             gameObject.AddComponent<CapsuleCollider>();
+
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
+
+        if (animator != null && animator.applyRootMotion)
+        {
+            animator.applyRootMotion = false;
+        }
+
+        speedParamHash = Animator.StringToHash(speedParamName);
     }
 
     private void Update()
@@ -42,6 +59,16 @@ public class PlayerMovement : MonoBehaviour, IMovable
         }
         ApplyDeceleration();
         UpdateSpeedUI();
+        UpdateAnimator();
+    }
+
+    private void UpdateAnimator()
+    {
+        if (animator != null)
+        {
+            float normalizedSpeed = maxSpeed > 0f ? Mathf.Clamp01(currentSpeed / maxSpeed) : 0f;
+            animator.SetFloat(speedParamHash, normalizedSpeed);
+        }
     }
 
     private void HandleInput()

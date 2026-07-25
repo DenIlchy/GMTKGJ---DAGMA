@@ -58,6 +58,17 @@ public class OpponentMovement : MonoBehaviour, IMovable
             MoveForward();
 
         ApplyDeceleration();
+        UpdateAnimator();
+    }
+
+    private void UpdateAnimator()
+    {
+        var anim = GetComponentInChildren<Animator>();
+        if (anim != null)
+        {
+            float normalizedSpeed = maxSpeed > 0f ? Mathf.Clamp01(currentSpeed / maxSpeed) : 0f;
+            anim.SetFloat("Speed", normalizedSpeed);
+        }
     }
 
     private void ConnectToGameSystem()
