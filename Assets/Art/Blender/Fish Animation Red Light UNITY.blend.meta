@@ -16,7 +16,7 @@ ModelImporter:
     resampleCurves: 1
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
-    motionNodeName: 
+    motionNodeName: <Root Transform>
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -43,7 +43,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 0
+      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -56,8 +56,180 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events: []
-      transformMask: []
-      maskType: 3
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Bone.004
+        weight: 1
+      - path: Armature/Bone.004/Bone.004_end
+        weight: 1
+      - path: Armature/Bone.004/Cube.001
+        weight: 1
+      - path: Armature/Bone.004/Cube.001/Cylinder.001
+        weight: 1
+      - path: Armature/Bone.004/Cube.001/Plane
+        weight: 1
+      - path: Armature/Bone.004/Cube.001/Plane.001
+        weight: 1
+      - path: Armature/Bone.005
+        weight: 1
+      - path: Armature/Bone.005/Bone.009
+        weight: 1
+      - path: Armature/Bone.005/Bone.009/Bone.009_end
+        weight: 1
+      - path: Armature/Bone.005/Cube.007
+        weight: 1
+      - path: Armature/Bone.007
+        weight: 1
+      - path: Armature/Bone.007/Bone.007_end
+        weight: 1
+      - path: Armature/Bone.014
+        weight: 1
+      - path: Armature/Bone.014/Bone.018
+        weight: 1
+      - path: Armature/Bone.014/Bone.018/Bone.018_end
+        weight: 1
+      - path: Armature/Bone.014/Cube.003
+        weight: 1
+      - path: Armature/Bone.016
+        weight: 1
+      - path: Armature/Bone.016/Bone.016_end
+        weight: 1
+      - path: Armature/Bone.022
+        weight: 1
+      - path: Armature/Bone.022/Bone.022_end
+        weight: 1
+      - path: Armature/Bone.022/Cube.009
+        weight: 1
+      - path: Armature/Bone.022/Cube.009/Cylinder.002
+        weight: 1
+      - path: Armature/Bone.022/Cube.009/Plane.002
+        weight: 1
+      - path: Armature/Bone.022/Cube.009/Plane.003
+        weight: 1
+      - path: Armature/Bone.023
+        weight: 1
+      - path: Armature/Bone.023/Bone.023_end
+        weight: 1
+      - path: Armature/Bone.024
+        weight: 1
+      - path: Armature/Bone.024/Bone.024_end
+        weight: 1
+      - path: Armature/Bone.026
+        weight: 1
+      - path: Armature/Bone.026/Bone.026_end
+        weight: 1
+      - path: Armature/Bone.029
+        weight: 1
+      - path: Armature/Bone.029/Bone.027
+        weight: 1
+      - path: Armature/Bone.029/Bone.027/Bone.027_end
+        weight: 1
+      - path: Armature/Bone.029/Bone.028
+        weight: 1
+      - path: Armature/Bone.029/Bone.028/Bone.028_end
+        weight: 1
+      - path: Armature/Red Light
+        weight: 1
+      - path: Armature/Red Light/Red Light_end
+        weight: 1
+      - path: Armature/Red Light End
+        weight: 1
+      - path: Armature/Red Light End/Bone.001
+        weight: 1
+      - path: Armature/Red Light End/Bone.001/Bone.002
+        weight: 1
+      - path: Armature/Red Light End/Bone.001/Bone.002/Bone.006
+        weight: 1
+      - path: Armature/Red Light End/Bone.001/Bone.002/Bone.006/Bone.006_end
+        weight: 1
+      - path: Armature/Red Light End/Bone.003
+        weight: 1
+      - path: Armature/Red Light End/Bone.003/Leg
+        weight: 1
+      - path: Armature/Red Light End/Bone.003/Leg/Bone.008
+        weight: 1
+      - path: Armature/Red Light End/Bone.003/Leg/Bone.008/Bone.008_end
+        weight: 1
+      - path: Armature/Red Light End/Bone.010
+        weight: 1
+      - path: Armature/Red Light End/Bone.010/Bone.011
+        weight: 1
+      - path: Armature/Red Light End/Bone.010/Bone.011/Bone.015
+        weight: 1
+      - path: Armature/Red Light End/Bone.010/Bone.011/Bone.015/Bone.015_end
+        weight: 1
+      - path: Armature/Red Light End/Bone.012
+        weight: 1
+      - path: Armature/Red Light End/Bone.012/Bone.013
+        weight: 1
+      - path: Armature/Red Light End/Bone.012/Bone.013/Bone.017
+        weight: 1
+      - path: Armature/Red Light End/Bone.012/Bone.013/Bone.017/Bone.017_end
+        weight: 1
+      - path: Armature/Red Light End/Bone.019
+        weight: 1
+      - path: Armature/Red Light End/Bone.019/Bone.019_end
+        weight: 1
+      - path: Armature/Red Light End/Bone.019/Sphere.003
+        weight: 1
+      - path: Armature/Red Light End/Bone.020
+        weight: 1
+      - path: Armature/Red Light End/Bone.020/Bone.020_end
+        weight: 1
+      - path: Armature/Red Light End/Bone.020/Sphere.001
+        weight: 1
+      - path: Armature/Red Light End/Bone.021
+        weight: 1
+      - path: Armature/Red Light End/Bone.021/Bone.021_end
+        weight: 1
+      - path: Armature/Red Light End/Bone.021/Cylinder
+        weight: 1
+      - path: Armature/Red Light End/Bone.030
+        weight: 1
+      - path: Armature/Red Light End/Bone.030/Bone.030_end
+        weight: 1
+      - path: Armature/Red Light End/Bone.030/Sphere.007
+        weight: 1
+      - path: Armature/Red Light End/Bone.031
+        weight: 1
+      - path: Armature/Red Light End/Bone.031/Bone.031_end
+        weight: 1
+      - path: Armature/Red Light End/Bone.031/Sphere.006
+        weight: 1
+      - path: Armature/Red Light End/Bone.032
+        weight: 1
+      - path: Armature/Red Light End/Bone.032/Bone.032_end
+        weight: 1
+      - path: Armature/Red Light End/Bone.032/Sphere.002
+        weight: 1
+      - path: Armature/Red Light End/Bone.033
+        weight: 1
+      - path: Armature/Red Light End/Bone.033/Bone.033_end
+        weight: 1
+      - path: Armature/Red Light End/Bone.033/Sphere.005
+        weight: 1
+      - path: Armature/Red Light End/Cube
+        weight: 1
+      - path: Armature/Red Light End/Cube.002
+        weight: 1
+      - path: Armature/Red Light End/Cube.005
+        weight: 1
+      - path: Armature/Red Light End/Cube.008
+        weight: 1
+      - path: Armature/Red Light End/Torus
+        weight: 1
+      - path: Armature/Red Light End/Torus.001
+        weight: 1
+      - path: Camera
+        weight: 1
+      - path: Cube.004
+        weight: 1
+      - path: Cube.006
+        weight: 1
+      maskType: 0
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     isReadable: 0

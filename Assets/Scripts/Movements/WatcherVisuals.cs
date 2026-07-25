@@ -2,10 +2,10 @@ using UnityEngine;
 
 public class WatcherVisuals : MonoBehaviour
 {
-    private static readonly int TimeOutParam = Animator.StringToHash("TimeOut");
+    private static readonly int StateParam = Animator.StringToHash("State");
 
     [Header("References")]
-    [Tooltip("Animator with the open/closed eyes states and the TimeOut bool parameter.")]
+    [Tooltip("Animator with GreenLight/RedLight/Scene states and the State int parameter (0 = Green, 1 = Red).")]
     [SerializeField] private Animator animator;
     [Tooltip("Optional renderer whose material color signals the current state.")]
     [SerializeField] private Renderer signalRenderer;
@@ -43,20 +43,21 @@ public class WatcherVisuals : MonoBehaviour
         switch (state)
         {
             case GameState.GreenLight:
-                SetTimeOut(false);
+                SetState(0);
                 SetSignalColor(greenColor);
                 break;
+            case GameState.RedLightWarning:
             case GameState.RedLight:
-                SetTimeOut(true);
+                SetState(1);
                 SetSignalColor(redColor);
                 break;
         }
     }
 
-    private void SetTimeOut(bool value)
+    private void SetState(int value)
     {
         if (animator != null)
-            animator.SetBool(TimeOutParam, value);
+            animator.SetInteger(StateParam, value);
     }
 
     private void SetSignalColor(Color color)
