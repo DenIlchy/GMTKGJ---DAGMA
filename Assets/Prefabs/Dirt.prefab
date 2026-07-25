@@ -88,4 +88,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 099a319062ab8ef45a6fd4cb66155c60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DirtSplat
-  requiredScrubDistance: 800
+  requiredScrubDistance: 300
