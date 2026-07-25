@@ -19,16 +19,24 @@ public class PopcornMinigame : Minigame
     [SerializeField] private int targetPopsToWin = 15;
 
     [Header("UI & Audio")]
-    [SerializeField] private TextMeshProUGUI counterText;
+    [Tooltip("The top text display (e.g., 'Kernels left to pop:').")]
+    [SerializeField] private TextMeshProUGUI promptDisplay;
+    [Tooltip("The bottom text display for the number countdown.")]
+    [SerializeField] private TextMeshProUGUI outputDisplay;
+
+    [Space(10)]
     [SerializeField] private AudioSource sfxSource;
-    [SerializeField] private AudioClip popSound;
+
+    [Tooltip("Add all your pop sound variations here. One will be chosen at random!")]
+    [SerializeField] private AudioClip[] popSounds;
+
     [SerializeField] private AudioClip errorSound;
+    [SerializeField] private AudioClip winSound;
 
     private int remainingPops;
     private int currentBurntKernelsCount;
     private List<Kernel> activeKernels = new List<Kernel>();
 
-    // Using a local flag prevents us from wrestling with the base class's IsActive property
     private bool isWinning = false;
 
     public override void StartMinigame()
@@ -79,7 +87,6 @@ public class PopcornMinigame : Minigame
 
     private void HandleKernelPopped(Kernel poppedKernel)
     {
-        // Block clicks if the minigame is closed OR if we are waiting for the win animation
         if (!IsActive || isWinning) return;
 
         if (poppedKernel.IsBurnt)
@@ -90,7 +97,13 @@ public class PopcornMinigame : Minigame
         }
         else
         {
-            if (sfxSource != null && popSound != null) sfxSource.PlayOneShot(popSound);
+            // Pick a random pop sound from the array
+            if (sfxSource != null && popSounds != null && popSounds.Length > 0)
+            {
+                AudioClip randomPop = popSounds[Random.Range(0, popSounds.Length)];
+                if (randomPop != null) sfxSource.PlayOneShot(randomPop);
+            }
+
             remainingPops--;
         }
 
@@ -99,8 +112,11 @@ public class PopcornMinigame : Minigame
 
         if (remainingPops <= 0)
         {
-            // Flag that the game is effectively over to block further input
             isWinning = true;
+
+            if (sfxSource != null && winSound != null) sfxSource.PlayOneShot(winSound);
+            if (outputDisplay != null) outputDisplay.text = "<color=green>POPPED!</color>";
+
             StartCoroutine(WinDelayRoutine());
         }
         else
@@ -111,17 +127,22 @@ public class PopcornMinigame : Minigame
 
     private IEnumerator WinDelayRoutine()
     {
-        // Wait 0.5 seconds for the final popcorn to fly up and fade out
-        yield return new WaitForSeconds(0.5f);
-
+        yield return new WaitForSeconds(0.8f);
         CompleteMinigame();
     }
 
     private void UpdateCounterUI()
     {
-        if (counterText != null)
+        if (isWinning) return;
+
+        if (promptDisplay != null)
         {
-            counterText.text = remainingPops.ToString();
+            promptDisplay.text = "Kernels left to pop:";
+        }
+
+        if (outputDisplay != null)
+        {
+            outputDisplay.text = remainingPops.ToString();
         }
     }
 
