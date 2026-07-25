@@ -140,8 +140,6 @@ public class GameSys : MonoBehaviour
 
             // --- Red Light: timer is out => speed check ---
             float redDuration = UnityEngine.Random.Range(redLightDurationRange.x, redLightDurationRange.y);
-            SetState(GameState.RedLight);
-            OnRedLightStarted?.Invoke(redDuration);
 
             List<IMovable> violators = movers
                 .Where(m => m != null && m.GetCurrentSpeed() > speedThreshold)
@@ -160,14 +158,14 @@ public class GameSys : MonoBehaviour
                     violator.PushBack(pushBackDistance);
                 }
                 OnPenaltyApplied?.Invoke(violators);
-
-                SetState(GameState.RedLight);
             }
 
             // --- Block all movement until the red light is over ---
             SetAllMovementBlocked(true);
 
-            // --- Hold Red Light for the remaining duration ---
+            // --- Red Light starts only after penalty has been given ---
+            SetState(GameState.RedLight);
+            OnRedLightStarted?.Invoke(redDuration);
             yield return RunPhaseTimer(redDuration);
             if (gameEnded) yield break;
 

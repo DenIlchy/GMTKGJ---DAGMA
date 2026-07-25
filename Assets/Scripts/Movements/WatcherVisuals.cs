@@ -3,9 +3,10 @@ using UnityEngine;
 public class WatcherVisuals : MonoBehaviour
 {
     private static readonly int StateParam = Animator.StringToHash("State");
+    private static readonly int HasViolatorsParam = Animator.StringToHash("HasViolators");
 
     [Header("References")]
-    [Tooltip("Animator with GreenLight/RedLight/Scene states and the State int parameter (0 = Green, 1 = Red).")]
+    [Tooltip("Animator driven by State int (0=green, 1=turn, 3=red) and HasViolators bool (turns to shooting).")]
     [SerializeField] private Animator animator;
     [Tooltip("Optional renderer whose material color signals the current state.")]
     [SerializeField] private Renderer signalRenderer;
@@ -44,11 +45,23 @@ public class WatcherVisuals : MonoBehaviour
         {
             case GameState.GreenLight:
                 SetState(0);
+                SetViolators(false);
                 SetSignalColor(greenColor);
                 break;
+
             case GameState.RedLightWarning:
-            case GameState.RedLight:
+                SetViolators(false);
+                SetSignalColor(redColor);
+                break;
+
+            case GameState.PenaltyFeedback:
                 SetState(1);
+                SetViolators(true);
+                SetSignalColor(redColor);
+                break;
+
+            case GameState.RedLight:
+                SetState(3);
                 SetSignalColor(redColor);
                 break;
         }
@@ -58,6 +71,12 @@ public class WatcherVisuals : MonoBehaviour
     {
         if (animator != null)
             animator.SetInteger(StateParam, value);
+    }
+
+    private void SetViolators(bool value)
+    {
+        if (animator != null)
+            animator.SetBool(HasViolatorsParam, value);
     }
 
     private void SetSignalColor(Color color)
