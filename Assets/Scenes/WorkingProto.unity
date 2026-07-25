@@ -634,7 +634,6 @@ GameObject:
   m_Component:
   - component: {fileID: 114310133}
   - component: {fileID: 114310132}
-  - component: {fileID: 114310131}
   - component: {fileID: 114310130}
   - component: {fileID: 114310134}
   m_Layer: 0
@@ -688,14 +687,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!81 &114310131
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 114310129}
-  m_Enabled: 1
 --- !u!20 &114310132
 Camera:
   m_ObjectHideFlags: 0
@@ -2744,7 +2735,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54557bc82b7ea3a46b9df45ef2780555, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DAGMAPenaltyController
-  stunDelay: 2
+  stunDelay: 0
   shootAnimationDuration: 0.3
   OnDAGMAShoot:
     m_PersistentCalls:
