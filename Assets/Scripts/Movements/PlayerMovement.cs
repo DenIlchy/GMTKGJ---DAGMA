@@ -11,13 +11,19 @@ public class PlayerMovement : MonoBehaviour, IMovable
 
     [Header("Momentum")]
     [Tooltip("Speed added per successful alternating tap.")]
-    [SerializeField] private float accelerationPerTap = 3f;
+    [SerializeField] private float accelerationPerTap = 0.5f;
     [Tooltip("Maximum movement speed.")]
-    [SerializeField] private float maxSpeed = 15f;
-    [Tooltip("How fast speed decays when not tapping.")]
-    [SerializeField] private float deceleration = 4f;
+    [SerializeField] private float maxSpeed = 8f;
+    [Tooltip("How fast speed decays NATURALLY while the player is actively tapping.")]
+    [SerializeField] private float deceleration = 3f;
     [Tooltip("Reduce speed by this amount when the same key is pressed twice.")]
-    [SerializeField] private float wrongTapPenalty = 1f;
+    [SerializeField] private float wrongTapPenalty = 0.5f;
+
+    [Header("Braking (Stopping)")]
+    [Tooltip("How fast speed decays when the player intentionally stops tapping.")]
+    [SerializeField] private float brakingDeceleration = 15f;
+    [Tooltip("Time (in seconds) without input before aggressive braking kicks in.")]
+    [SerializeField] private float brakingDelay = 0.15f;
 
     [Header("UI")]
     [Tooltip("Drag the Scrollbar here to visualize current speed.")]
@@ -33,6 +39,7 @@ public class PlayerMovement : MonoBehaviour, IMovable
     private Key? lastPressedKey;
     private bool movementBlocked;
     private int speedParamHash;
+    private float lastTapTime;
 
     private void Awake()
     {
@@ -79,6 +86,12 @@ public class PlayerMovement : MonoBehaviour, IMovable
         bool leftPressed = Keyboard.current[leftKey].wasPressedThisFrame;
         bool rightPressed = Keyboard.current[rightKey].wasPressedThisFrame;
 
+        // Register ANY tap activity to reset the braking timer
+        if (leftPressed || rightPressed)
+        {
+            lastTapTime = Time.time;
+        }
+
         if (leftPressed && rightPressed)
             return;
 
@@ -116,12 +129,20 @@ public class PlayerMovement : MonoBehaviour, IMovable
 
     private void MoveForward()
     {
-        transform.Translate(Vector3.forward * currentSpeed * Time.deltaTime);
+        // Don't move if speed is basically 0 to prevent micro-jitter
+        if (currentSpeed > 0.01f)
+        {
+            transform.Translate(Vector3.forward * currentSpeed * Time.deltaTime);
+        }
     }
 
     private void ApplyDeceleration()
     {
-        currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, deceleration * Time.deltaTime);
+        // If the player hasn't tapped anything recently, apply the hard brake.
+        // Otherwise, apply the normal running deceleration.
+        float activeDeceleration = (Time.time - lastTapTime > brakingDelay) ? brakingDeceleration : deceleration;
+
+        currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, activeDeceleration * Time.deltaTime);
     }
 
     private void UpdateSpeedUI()

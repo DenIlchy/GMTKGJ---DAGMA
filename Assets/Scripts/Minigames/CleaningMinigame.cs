@@ -7,7 +7,7 @@ public class CleaningMinigame : Minigame
     [SerializeField] private DirtSplat dirtPrefab;
     [SerializeField] private RectTransform dirtSpawnArea;
     [SerializeField] private int minSplats = 3;
-    [SerializeField] private int maxSplats = 7;
+    [SerializeField] private int maxSplats = 5;
 
     [Header("WebGL Custom Cursor")]
     [SerializeField] private Texture2D wipeCursorTexture;

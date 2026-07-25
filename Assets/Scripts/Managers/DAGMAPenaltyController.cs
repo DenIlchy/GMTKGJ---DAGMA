@@ -65,7 +65,7 @@ public class DAGMAPenaltyController : MonoBehaviour
             if (violator == null) continue;
 
             // Pushback result of shoot
-            violator.PushBack(pushBackDistance);
+            //violator.PushBack(pushBackDistance);
 
             // Trigger target stun animation (delays minigame start)
             violator.ApplyStunAnimation(stunDelay);
