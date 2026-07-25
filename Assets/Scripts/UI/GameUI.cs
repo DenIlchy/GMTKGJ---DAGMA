@@ -12,8 +12,6 @@ public class GameUI : MonoBehaviour
     [SerializeField] private TMP_Text phaseTimerText;
     [Tooltip("Current state label (Green Light! / Red Light! / etc.).")]
     [SerializeField] private TMP_Text stateText;
-    [Tooltip("Countdown for the full round.")]
-    [SerializeField] private TMP_Text roundTimerText;
     [Tooltip("Feedback label shown when the player moved during Red Light.")]
     [SerializeField] private GameObject youMovedObject;
     [Tooltip("Result label shown on Victory or Game Over.")]
@@ -55,13 +53,8 @@ public class GameUI : MonoBehaviour
         }
 
         gameSys.OnPhaseTimerUpdated += HandlePhaseTimerUpdated;
-        gameSys.OnRoundTimerUpdated += HandleRoundTimerUpdated;
-        gameSys.OnRoundTimeExpired += HandleRoundTimeExpired;
         gameSys.OnPenaltyFeedbackStarted += HandlePenaltyFeedbackStarted;
         gameSys.OnPenaltyApplied += HandlePenaltyApplied;
-
-        if (roundTimerText != null)
-            roundTimerText.text = "00";
 
         if (youMovedObject != null)
             youMovedObject.SetActive(false);
@@ -84,8 +77,6 @@ public class GameUI : MonoBehaviour
             return;
 
         gameSys.OnPhaseTimerUpdated -= HandlePhaseTimerUpdated;
-        gameSys.OnRoundTimerUpdated -= HandleRoundTimerUpdated;
-        gameSys.OnRoundTimeExpired -= HandleRoundTimeExpired;
         gameSys.OnPenaltyFeedbackStarted -= HandlePenaltyFeedbackStarted;
         gameSys.OnPenaltyApplied -= HandlePenaltyApplied;
     }
@@ -162,18 +153,6 @@ public class GameUI : MonoBehaviour
     {
         if (phaseTimerText != null)
             phaseTimerText.text = Mathf.CeilToInt(remaining).ToString();
-    }
-
-    private void HandleRoundTimerUpdated(float remaining)
-    {
-        if (roundTimerText != null)
-            roundTimerText.text = $"{Mathf.CeilToInt(remaining):00}";
-    }
-
-    private void HandleRoundTimeExpired()
-    {
-        ShowResult("Time Expired", redColor);
-        resultShown = true;
     }
 
     private void HandlePenaltyFeedbackStarted(List<IMovable> violators)
