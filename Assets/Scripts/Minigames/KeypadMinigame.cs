@@ -24,26 +24,34 @@ public class KeypadMinigame : Minigame
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI targetDisplay;
     [SerializeField] private TextMeshProUGUI outputDisplay;
-    
+
     [Header("Buttons (12 Total Grid)")]
     [SerializeField] private Button[] digitButtons; // 0 through 9
     [SerializeField] private Button clearButton;
     [SerializeField] private Button timeButton;
 
     [Header("Multi-Question Pool Settings")]
-    [SerializeField] private List<MicrowaveQuestion> questionPool = new List<MicrowaveQuestion>()
+    [SerializeField]
+    private List<MicrowaveQuestion> questionPool = new List<MicrowaveQuestion>()
     {
         new MicrowaveQuestion("Quick! Call the Police!", "911"),
         new MicrowaveQuestion("Blaze it!", "420"),
         new MicrowaveQuestion("They come in pairs:", "80085")
     };
-    
+
     [Tooltip("Number of questions the player must solve to complete this minigame session.")]
     [SerializeField] private int requiredSolvesToWin = 3;
     [SerializeField] private int maxDigits = 5;
 
     [Header("Button Press Feedback Colors")]
     [SerializeField] private Color pressFlashColor = new Color(0.9f, 0.95f, 1f, 1f);
+
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioClip buttonClickClip;
+    [SerializeField] private AudioClip correctClip;
+    [SerializeField] private AudioClip errorClip;
+    [SerializeField] private AudioClip winClip;
 
     private string currentInput = "";
     private MicrowaveQuestion currentQuestion;
@@ -52,6 +60,7 @@ public class KeypadMinigame : Minigame
 
     private int currentSolveCount = 0;
     private bool isWired = false;
+    private bool isWinning = false; // Prevents clicks during the final win delay
     private float lastInputTime = 0f;
     private const float inputCooldown = 0.05f;
 
@@ -90,7 +99,6 @@ public class KeypadMinigame : Minigame
 
         AutoFindDisplays();
 
-        // Wire digit buttons 0-9
         if (digitButtons != null)
         {
             for (int i = 0; i < digitButtons.Length; i++)
@@ -133,6 +141,7 @@ public class KeypadMinigame : Minigame
         AutoFindDisplays();
         WireButtons();
 
+        isWinning = false;
         currentSolveCount = 0;
         lastAskedPrompt = "";
         RefillQuestionDeck();
@@ -140,9 +149,6 @@ public class KeypadMinigame : Minigame
         ResetKeypad();
     }
 
-    /// <summary>
-    /// Refills and shuffles the question deck when all questions have been burned.
-    /// </summary>
     private void RefillQuestionDeck()
     {
         availableQuestionDeck.Clear();
@@ -157,7 +163,7 @@ public class KeypadMinigame : Minigame
         }
 
         availableQuestionDeck.AddRange(questionPool);
-        
+
         // Shuffle deck
         for (int i = 0; i < availableQuestionDeck.Count; i++)
         {
@@ -167,7 +173,6 @@ public class KeypadMinigame : Minigame
             availableQuestionDeck[randomIndex] = temp;
         }
 
-        // Ensure the first question of the new deck is NOT identical to the last asked prompt
         if (availableQuestionDeck.Count > 1 && availableQuestionDeck[0].promptText == lastAskedPrompt)
         {
             var first = availableQuestionDeck[0];
@@ -176,9 +181,6 @@ public class KeypadMinigame : Minigame
         }
     }
 
-    /// <summary>
-    /// Pulls the next non-repeating question from the deck.
-    /// </summary>
     private void PickNextQuestion()
     {
         if (availableQuestionDeck.Count == 0)
@@ -189,21 +191,14 @@ public class KeypadMinigame : Minigame
         currentQuestion = availableQuestionDeck[0];
         availableQuestionDeck.RemoveAt(0);
         lastAskedPrompt = currentQuestion.promptText;
-
-        Debug.Log($"[KeypadMinigame] Picked Question: '{currentQuestion.promptText}' -> Target Code: '{currentQuestion.targetCode}' (Deck remaining: {availableQuestionDeck.Count})");
     }
 
-    /// <summary>
-    /// Microwave/Calculator left-shifted digit entry.
-    /// </summary>
     public void PressDigit(int digit)
     {
-        if (IsCompleted || IsDebounced()) return;
+        if (IsCompleted || IsDebounced() || isWinning) return;
 
-        // Play SFX Placeholder
-        if (SoundManager.Instance != null) SoundManager.Instance.PlayKeypadClickSFX();
+        PlaySFX(buttonClickClip);
 
-        // Flash visual feedback on pressed button
         if (digitButtons != null && digit >= 0 && digit < digitButtons.Length && digitButtons[digit] != null)
         {
             FlashButton(digitButtons[digit]);
@@ -212,46 +207,34 @@ public class KeypadMinigame : Minigame
         if (currentInput.Length < maxDigits)
         {
             currentInput += digit.ToString();
-            Debug.Log($"[KeypadMinigame] Digit {digit} entered! Current raw input: '{currentInput}'");
             UpdateDisplay();
         }
     }
 
-    /// <summary>
-    /// Clears the entered digits back to empty.
-    /// </summary>
     public void PressClear()
     {
-        if (IsCompleted || IsDebounced()) return;
+        if (IsCompleted || IsDebounced() || isWinning) return;
 
-        // Play SFX Placeholder
-        if (SoundManager.Instance != null) SoundManager.Instance.PlayKeypadClickSFX();
+        PlaySFX(buttonClickClip);
 
         if (clearButton != null) FlashButton(clearButton);
 
-        Debug.Log("[KeypadMinigame] Clear pressed! Input cleared.");
         currentInput = "";
         UpdateDisplay();
     }
 
-    /// <summary>
-    /// Submits the entered time code and checks validity against the current riddle target.
-    /// </summary>
     public void PressTime()
     {
-        if (IsCompleted || IsDebounced()) return;
+        if (IsCompleted || IsDebounced() || isWinning) return;
 
-        // Play SFX Placeholder
-        if (SoundManager.Instance != null) SoundManager.Instance.PlayKeypadClickSFX();
+        PlaySFX(buttonClickClip);
 
         if (timeButton != null) FlashButton(timeButton);
 
         if (currentQuestion == null) return;
 
         string target = currentQuestion.targetCode;
-        Debug.Log($"[KeypadMinigame] Submitting input '{currentInput}' against target '{target}'");
 
-        // Flexible match checking (exact match, trimmed zero match, or time-formatted match)
         bool isCorrect = (currentInput == target) ||
                          (currentInput.TrimStart('0') == target.TrimStart('0')) ||
                          (FormatAsTime(currentInput) == FormatAsTime(target));
@@ -259,31 +242,46 @@ public class KeypadMinigame : Minigame
         if (isCorrect)
         {
             currentSolveCount++;
-            Debug.Log($"[KeypadMinigame] Correct answer! Solved {currentSolveCount}/{requiredSolvesToWin}");
 
             if (currentSolveCount >= requiredSolvesToWin)
             {
                 if (outputDisplay != null) outputDisplay.text = "<color=green>COOKING!</color>";
-                
-                // 1. Instantly hide the minigame UI panel
-                CloseMinigame();
 
-                // 2. Trigger completion (which notifies MinigameManager -> triggers reverse camera sweep!)
-                CompleteMinigame();
+                PlaySFX(winClip);
+                isWinning = true;
+
+                // Add a small delay so the sound plays before the UI disappears
+                Invoke(nameof(TriggerWin), 0.75f);
             }
             else
             {
-                // Advance to next question
                 if (outputDisplay != null) outputDisplay.text = $"<color=green>CORRECT! ({currentSolveCount}/{requiredSolvesToWin})</color>";
+
+                PlaySFX(correctClip);
                 Invoke(nameof(AdvanceToNextQuestion), 0.6f);
             }
         }
         else
         {
-            Debug.Log($"[KeypadMinigame] Incorrect code '{currentInput}' (Target: '{target}'). Resetting output...");
             if (outputDisplay != null) outputDisplay.text = "<color=red>ERROR</color>";
+
+            PlaySFX(errorClip);
             Invoke(nameof(ResetKeypad), 0.5f);
         }
+    }
+
+    private void PlaySFX(AudioClip clip)
+    {
+        if (sfxSource != null && clip != null)
+        {
+            sfxSource.PlayOneShot(clip);
+        }
+    }
+
+    private void TriggerWin()
+    {
+        CloseMinigame();
+        CompleteMinigame();
     }
 
     private void AdvanceToNextQuestion()
@@ -334,8 +332,8 @@ public class KeypadMinigame : Minigame
     private string FormatAsTime(string input)
     {
         if (string.IsNullOrEmpty(input)) return "00:00";
-        if (input.Length > 4) return input; // Return raw string for 5+ digit easter egg codes like 80085
-        
+        if (input.Length > 4) return input;
+
         string padded = input.PadLeft(4, '0');
         string minutes = padded.Substring(0, 2);
         string seconds = padded.Substring(2, 2);

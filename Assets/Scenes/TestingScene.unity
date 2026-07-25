@@ -3525,7 +3525,6 @@ MonoBehaviour:
   postRedLightDelayRange: {x: 0, y: 4}
   penaltyFeedbackDuration: 1
   introDuration: 2
-  roundDuration: 120
   speedThreshold: 1.5
   pushBackDistance: 4
 --- !u!4 &492078120
@@ -4778,7 +4777,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: a27bbf7be84c4624293db2586984e9b9, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -7415,17 +7414,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
---- !u!114 &1231927046 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5877320185084491841, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
-  m_PrefabInstance: {fileID: 1231927040}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &1231927047 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5372934700757944644, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
@@ -9159,7 +9147,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameUI
   phaseTimerText: {fileID: 1231927045}
   stateText: {fileID: 1231927047}
-  roundTimerText: {fileID: 1231927046}
   youMovedObject: {fileID: 1231927044}
   resultText: {fileID: 1231927042}
   resultPanel: {fileID: 1231927043}
