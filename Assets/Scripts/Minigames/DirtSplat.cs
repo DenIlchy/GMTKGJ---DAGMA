@@ -9,6 +9,10 @@ public class DirtSplat : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 {
     public event Action<DirtSplat> OnCleaned;
 
+    [Header("Visuals")]
+    [Tooltip("Add your different splatter sprites here. One will be chosen at random when spawned.")]
+    [SerializeField] private Sprite[] splatSprites;
+
     [Header("Scrubbing Settings")]
     [SerializeField] private float requiredScrubDistance = 800f;
 
@@ -27,6 +31,17 @@ public class DirtSplat : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     private void Awake()
     {
         dirtImage = GetComponent<Image>();
+
+        // Randomize the sprite if variations are provided
+        if (splatSprites != null && splatSprites.Length > 0)
+        {
+            int randomIndex = UnityEngine.Random.Range(0, splatSprites.Length);
+            dirtImage.sprite = splatSprites[randomIndex];
+
+            // This ensures the image keeps its correct proportions (no stretching)
+            // but stays constrained to the size you set on the Prefab!
+            dirtImage.preserveAspect = true;
+        }
     }
 
     public void ResetSplat()
