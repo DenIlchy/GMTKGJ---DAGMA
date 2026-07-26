@@ -40,6 +40,10 @@ public class GameSys : MonoBehaviour
     [Tooltip("How long the 'You moved!' feedback is shown before the penalty is applied.")]
     [SerializeField] private float penaltyFeedbackDuration = 1f;
 
+    [Header("Red Light Timer Adjustment")]
+    [Tooltip("Public delay (in seconds) added before the Red Light timer starts counting down on screen. Adjust in Inspector to perfectly match camera transition duration.")]
+    public float redLightTimerStartDelay = 0.85f;
+
     [Header("Level")]
     [Tooltip("Delay before the first Green Light starts (Intro state).")]
     [SerializeField] private float introDuration = 2f;
@@ -166,6 +170,16 @@ public class GameSys : MonoBehaviour
             // --- Red Light starts only after penalty has been given ---
             SetState(GameState.RedLight);
             OnRedLightStarted?.Invoke(redDuration);
+
+            // Delay Red Light timer countdown until camera transition completes
+            float cameraTransitionDelay = CameraManager.Instance != null ? CameraManager.Instance.GetTotalTransitionDuration() : 0.85f;
+            float totalTimerDelay = Mathf.Max(cameraTransitionDelay, redLightTimerStartDelay);
+
+            if (totalTimerDelay > 0f)
+            {
+                yield return new WaitForSeconds(totalTimerDelay);
+            }
+
             yield return RunPhaseTimer(redDuration);
             if (gameEnded) yield break;
 

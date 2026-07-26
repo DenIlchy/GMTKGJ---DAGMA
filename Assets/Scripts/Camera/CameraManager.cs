@@ -26,6 +26,9 @@ public class CameraManager : MonoBehaviour
 
     public static CameraManager Instance { get; private set; }
 
+    public float GetStepDuration() => stepDuration;
+    public float GetTotalTransitionDuration() => (stepDuration * 2f) + uiPopupDelay;
+
     private void Awake()
     {
         if (Instance == null)
