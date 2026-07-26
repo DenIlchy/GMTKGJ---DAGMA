@@ -164,6 +164,12 @@ public class OpponentMovement : MonoBehaviour, IMovable
         transform.position -= transform.forward * distance;
     }
 
+    public void PlayGetShotAnimation()
+    {
+        var anim = GetComponentInChildren<Animator>();
+        if (anim != null) anim.SetTrigger("mshoot");
+    }
+
     public void ApplyStunAnimation(float duration)
     {
         var anim = GetComponentInChildren<Animator>();

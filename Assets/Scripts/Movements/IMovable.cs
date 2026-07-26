@@ -6,6 +6,7 @@ public interface IMovable
     void PushBack(float distance);
     void SetMovementBlocked(bool blocked);
     void ApplyStunAnimation(float duration);
+    void PlayGetShotAnimation();
     bool IsPlayer { get; }
     Transform MoverTransform { get; }
 }

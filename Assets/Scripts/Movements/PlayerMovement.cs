@@ -45,6 +45,10 @@ public class PlayerMovement : MonoBehaviour, IMovable
     [SerializeField] private float footstepPitchVariation = 0.05f;
     [SerializeField] private float minSpeedForFootstep = 0.01f;
 
+    [Header("Stun & Reaction VFX")]
+    [Tooltip("Optional child GameObject above player head enabled during stun (e.g. stars4 visual model).")]
+    [SerializeField] private GameObject stunVFXObject;
+
     private float currentSpeed;
     private Key? lastPressedKey;
     private bool movementBlocked;
@@ -232,11 +236,27 @@ public class PlayerMovement : MonoBehaviour, IMovable
     public bool IsPlayer => true;
     public Transform MoverTransform => transform;
 
+    public void PlayGetShotAnimation()
+    {
+        var anim = animator != null ? animator : GetComponentInChildren<Animator>();
+        if (anim != null)
+        {
+            anim.SetTrigger("mshoot");
+            anim.SetTrigger("GetShot");
+        }
+    }
+
     public void PushBack(float distance)
     {
         currentSpeed = 0f;
         lastPressedKey = null;
         transform.position -= transform.forward * distance;
+        var anim = animator != null ? animator : GetComponentInChildren<Animator>();
+        if (anim != null)
+        {
+            anim.SetTrigger("mstars");
+            anim.SetTrigger("Pushback");
+        }
     }
 
     public void ApplyStunAnimation(float duration)
@@ -247,10 +267,22 @@ public class PlayerMovement : MonoBehaviour, IMovable
     private System.Collections.IEnumerator StunAnimationRoutine(float duration)
     {
         isStunned = true;
-        var anim = GetComponentInChildren<Animator>();
+        var anim = animator != null ? animator : GetComponentInChildren<Animator>();
         if (anim != null) anim.SetTrigger("Stun");
+
+        if (stunVFXObject != null)
+        {
+            stunVFXObject.SetActive(true);
+        }
+
         Debug.Log($"[PlayerMovement] Stun animation applied to Char for {duration}s!");
         yield return new WaitForSeconds(duration);
+
+        if (stunVFXObject != null)
+        {
+            stunVFXObject.SetActive(false);
+        }
+
         isStunned = false;
     }
 
