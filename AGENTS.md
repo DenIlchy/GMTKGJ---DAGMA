@@ -2,7 +2,7 @@
 - Project name: GMTKGJ---DAGMA
 - Unity version: Unity 6000.3.20f1
 - Active game object:
-  - Name: Char
+  - Name: Rival (3)
   - Tag: Untagged
-  - Layer: Player
+  - Layer: Rival
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
