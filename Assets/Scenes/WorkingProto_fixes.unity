@@ -867,13 +867,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 114310129}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.06475277, y: -0.36192623, z: 0.007723928, w: 0.92992306}
-  m_LocalPosition: {x: 3.29, y: 20.74, z: 201.47}
+  m_LocalRotation: {x: 0.11162103, y: -0.36941627, z: 0.12684235, w: 0.91377425}
+  m_LocalPosition: {x: 2.25, y: 22.41, z: 204.11}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 7.24, y: -42.651, z: -1.878}
+  m_LocalEulerAnglesHint: {x: 17.32, y: -42.651, z: 9}
 --- !u!114 &114310134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11720,6 +11720,8 @@ MonoBehaviour:
   opponentOnePositionSlider: {fileID: 2042919816}
   opponentTwoPositionSlider: {fileID: 2042919817}
   opponentThreePositionSlider: {fileID: 2042919818}
+  musicVolumeSlider: {fileID: 0}
+  sfxVolumeSlider: {fileID: 0}
   greenColor: {r: 0, g: 1, b: 0, a: 1}
   warningColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   redColor: {r: 1, g: 0, b: 0, a: 1}
