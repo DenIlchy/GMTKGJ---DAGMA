@@ -46,9 +46,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 896c55bc97b13b4448764ff1532bc7c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OpponentMovement
-  accelerationPerStep: 0.3
+  accelerationPerStep: 0.5
   maxSpeed: 8
-  deceleration: 0.2
+  deceleration: 3
   stepIntervalRange: {x: 0.2, y: 0.5}
   riskyWarningStepChance: 0.265
   warningReactionDelayRange: {x: 0.5, y: 1}
