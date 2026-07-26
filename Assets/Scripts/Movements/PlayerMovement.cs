@@ -45,6 +45,10 @@ public class PlayerMovement : MonoBehaviour, IMovable
     [SerializeField] private float footstepPitchVariation = 0.05f;
     [SerializeField] private float minSpeedForFootstep = 0.01f;
 
+    [Header("Stun VFX")]
+    [Tooltip("Child GameObject above player head enabled during stun (e.g. stars4 visual model).")]
+    [SerializeField] private GameObject stunVFXObject;
+
     private float currentSpeed;
     private Key? lastPressedKey;
     private bool movementBlocked;
@@ -249,8 +253,20 @@ public class PlayerMovement : MonoBehaviour, IMovable
         isStunned = true;
         var anim = GetComponentInChildren<Animator>();
         if (anim != null) anim.SetTrigger("Stun");
+
+        if (stunVFXObject != null)
+        {
+            stunVFXObject.SetActive(true);
+        }
+
         Debug.Log($"[PlayerMovement] Stun animation applied to Char for {duration}s!");
         yield return new WaitForSeconds(duration);
+
+        if (stunVFXObject != null)
+        {
+            stunVFXObject.SetActive(false);
+        }
+
         isStunned = false;
     }
 
