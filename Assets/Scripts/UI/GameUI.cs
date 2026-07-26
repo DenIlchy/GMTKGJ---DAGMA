@@ -38,6 +38,13 @@ public class GameUI : MonoBehaviour
     [SerializeField] private Slider opponentTwoPositionSlider;
     [SerializeField] private Slider opponentThreePositionSlider;
 
+    [Header("Audio & Volume Settings")]
+    [SerializeField] private Slider musicVolumeSlider;
+    [SerializeField] private Slider sfxVolumeSlider;
+
+    private const string MasterVolumeKey = "MasterVolume";
+    private const string SFXVolumeKey = "SFXVolume";
+
     [Header("Colors")]
     [SerializeField] private Color greenColor = Color.green;
     [SerializeField] private Color warningColor = Color.yellow;
@@ -49,6 +56,8 @@ public class GameUI : MonoBehaviour
 
     private void Start()
     {
+        InitializeVolumeSettings();
+
         gameSys = GameSys.Instance;
         if (gameSys == null)
         {
@@ -292,5 +301,36 @@ public class GameUI : MonoBehaviour
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(0);
+    }
+
+    private void InitializeVolumeSettings()
+    {
+        float defaultVolume = PlayerPrefs.GetFloat(MasterVolumeKey, 0.5f); // 50% default
+        AudioListener.volume = defaultVolume;
+
+        if (musicVolumeSlider != null)
+        {
+            musicVolumeSlider.value = defaultVolume;
+            musicVolumeSlider.onValueChanged.RemoveListener(SetMasterVolume);
+            musicVolumeSlider.onValueChanged.AddListener(SetMasterVolume);
+        }
+
+        if (sfxVolumeSlider != null)
+        {
+            sfxVolumeSlider.value = PlayerPrefs.GetFloat(SFXVolumeKey, 0.5f);
+            sfxVolumeSlider.onValueChanged.RemoveListener(SetSFXVolume);
+            sfxVolumeSlider.onValueChanged.AddListener(SetSFXVolume);
+        }
+    }
+
+    public void SetMasterVolume(float volume)
+    {
+        AudioListener.volume = volume;
+        PlayerPrefs.SetFloat(MasterVolumeKey, volume);
+    }
+
+    public void SetSFXVolume(float volume)
+    {
+        PlayerPrefs.SetFloat(SFXVolumeKey, volume);
     }
 }
