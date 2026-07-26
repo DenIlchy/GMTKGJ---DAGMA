@@ -89,5 +89,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DirtSplat
   splatSprites:
-  - {fileID: 21300000, guid: b4ea41cdb7c8e4d47816d9e3cfab8e41, type: 3}
+  - {fileID: 21300000, guid: 580f4e8994c7ea44b83e09c8470c525a, type: 3}
+  - {fileID: 21300000, guid: 5b5c3381745e0874499dca87231faa65, type: 3}
+  - {fileID: 21300000, guid: 306f84b505cfdec45903f45e49ad54dd, type: 3}
+  - {fileID: 21300000, guid: 67272f85c2f60824ab7d45b755cf3949, type: 3}
+  - {fileID: 21300000, guid: b0103f6cfe44c4841a3bbb707a57b8b6, type: 3}
+  - {fileID: 21300000, guid: 67d1106010e456c44a857b5a58a2f525, type: 3}
+  - {fileID: 21300000, guid: 9f6dd1b6e7645c64ea33b8b3edec19e2, type: 3}
+  - {fileID: 21300000, guid: 780d5d28642d88c4fbca2482eb5e6fb0, type: 3}
   requiredScrubDistance: 400

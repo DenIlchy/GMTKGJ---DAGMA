@@ -23,6 +23,10 @@ public class RedLightMinigameManager : MonoBehaviour
     [Tooltip("Weight recovered by unselected minigames per Red Light round.")]
     [SerializeField] private float weightRecoveryPerRound = 0.25f;
 
+    [Header("Pre-Transition Delay")]
+    [Tooltip("Public delay before starting the minigame camera arc sweep transition (editable in Inspector for balance).")]
+    public float preTransitionDelay = 0.0f;
+
     [Header("Green Light Grace Period Settings")]
     [Tooltip("Grace period duration in seconds when Green Light starts before the minigame is auto-closed.")]
     public float gracePeriodDuration = 2.0f;
@@ -32,6 +36,7 @@ public class RedLightMinigameManager : MonoBehaviour
     private GameSys gameSys;
     private Coroutine gracePeriodCoroutine;
     private bool isMinigameActive;
+    private List<IMovable> pendingViolators = new List<IMovable>();
 
     public static RedLightMinigameManager Instance { get; private set; }
 
@@ -58,6 +63,7 @@ public class RedLightMinigameManager : MonoBehaviour
         gameSys = GameSys.Instance;
         if (gameSys == null) return;
 
+        gameSys.OnPenaltyFeedbackStarted += HandlePenaltyFeedbackStarted;
         gameSys.OnRedLightStarted += HandleRedLightStarted;
         gameSys.OnGreenLightStarted += HandleGreenLightStarted;
     }
@@ -66,6 +72,7 @@ public class RedLightMinigameManager : MonoBehaviour
     {
         if (gameSys != null)
         {
+            gameSys.OnPenaltyFeedbackStarted -= HandlePenaltyFeedbackStarted;
             gameSys.OnRedLightStarted -= HandleRedLightStarted;
             gameSys.OnGreenLightStarted -= HandleGreenLightStarted;
         }
@@ -73,6 +80,19 @@ public class RedLightMinigameManager : MonoBehaviour
         if (MinigameManager.Instance != null)
         {
             MinigameManager.Instance.OnActiveMinigameCompleted -= HandleMinigameCompleted;
+        }
+    }
+
+    private void HandlePenaltyFeedbackStarted(List<IMovable> violators)
+    {
+        if (violators != null && violators.Count > 0)
+        {
+            pendingViolators = new List<IMovable>(violators);
+            Debug.Log($"[RedLightMinigameManager] Cached {pendingViolators.Count} violator(s) from PenaltyFeedback.");
+        }
+        else
+        {
+            pendingViolators.Clear();
         }
     }
 
@@ -96,8 +116,9 @@ public class RedLightMinigameManager : MonoBehaviour
             MinigameManager.Instance.OnActiveMinigameCompleted += HandleMinigameCompleted;
         }
 
-        // Gather current violators
-        List<IMovable> violators = GetCurrentViolators();
+        // Use cached violators from penalty feedback if available
+        List<IMovable> violators = new List<IMovable>(pendingViolators);
+        pendingViolators.Clear();
 
         if (DAGMAPenaltyController.Instance != null)
         {
@@ -128,13 +149,23 @@ public class RedLightMinigameManager : MonoBehaviour
 
     private void LaunchMinigameSequence()
     {
+        StartCoroutine(LaunchMinigameSequenceCoroutine());
+    }
+
+    private IEnumerator LaunchMinigameSequenceCoroutine()
+    {
+        if (preTransitionDelay > 0f)
+        {
+            yield return new WaitForSeconds(preTransitionDelay);
+        }
+
         // Step 1: Select weighted random minigame
         Minigame selectedMinigame = PickWeightedMinigame();
 
         if (selectedMinigame == null)
         {
             Debug.LogWarning("[RedLightMinigameManager] No minigame available in pool!");
-            return;
+            yield break;
         }
 
         Debug.Log($"[RedLightMinigameManager] Selected Minigame: {selectedMinigame.gameObject.name}");
@@ -224,6 +255,8 @@ public class RedLightMinigameManager : MonoBehaviour
 
     private void HandleGreenLightStarted(float duration)
     {
+        pendingViolators.Clear();
+
         if (!isMinigameActive) return;
 
         // If player is still inside the minigame when Green Light starts, trigger grace period timer!

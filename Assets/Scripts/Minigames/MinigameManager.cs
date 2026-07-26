@@ -15,8 +15,11 @@ public class MinigameManager : MonoBehaviour
     [SerializeField] private GameObject gameplayHud;
 
     public event Action OnActiveMinigameCompleted;
+    public event Action OnMinigameClosed;
 
     public static MinigameManager Instance { get; private set; }
+
+    public bool IsMinigameActive => currentMinigame != null && currentMinigame.IsActive;
 
     private void Awake()
     {
@@ -81,6 +84,7 @@ public class MinigameManager : MonoBehaviour
             if (gameplayHud != null)
                 gameplayHud.SetActive(true);
             Debug.Log("[MinigameManager] Minigame UI Closed.");
+            OnMinigameClosed?.Invoke();
         }
     }
 

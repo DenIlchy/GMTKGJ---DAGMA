@@ -60,21 +60,25 @@ public class DAGMAPenaltyController : MonoBehaviour
         // Step 2: Impact -> Apply Pushback & Stun Animation to all violators
         Debug.Log($"[DAGMAPenaltyController] DAGMA SHOOTS! Applying pushback ({pushBackDistance}m) and stun animation ({stunDelay}s)...");
 
+        bool playerIsViolator = System.Linq.Enumerable.Any(violators, v => v != null && v.IsPlayer);
+
         foreach (var violator in violators)
         {
             if (violator == null) continue;
 
-            // Pushback result of shoot
-            //violator.PushBack(pushBackDistance); // commented out due to double call of the pushback function (the other one is in GameSys)
-
-            // Trigger target stun animation (delays minigame start)
+            // Trigger target stun animation on each violator
             violator.ApplyStunAnimation(stunDelay);
         }
 
-        // Step 3: Wait for stun animation delay before proceeding
-        if (stunDelay > 0f)
+        // Step 3: Wait for stun animation delay before proceeding ONLY IF local player violated
+        if (playerIsViolator && stunDelay > 0f)
         {
+            Debug.Log($"[DAGMAPenaltyController] Player violated! Delaying minigame opening by player stun delay ({stunDelay}s)...");
             yield return new WaitForSeconds(stunDelay);
+        }
+        else
+        {
+            Debug.Log("[DAGMAPenaltyController] Player is innocent! Proceeding immediately to minigame without stun delay.");
         }
 
         Debug.Log("[DAGMAPenaltyController] Penalty sequence complete.");

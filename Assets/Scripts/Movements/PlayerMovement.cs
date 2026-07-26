@@ -57,6 +57,31 @@ public class PlayerMovement : MonoBehaviour, IMovable
         speedParamHash = Animator.StringToHash(speedParamName);
     }
 
+    private void Start()
+    {
+        if (MinigameManager.Instance != null)
+        {
+            MinigameManager.Instance.OnMinigameClosed += HandleMinigameClosed;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (MinigameManager.Instance != null)
+        {
+            MinigameManager.Instance.OnMinigameClosed -= HandleMinigameClosed;
+        }
+    }
+
+    private void HandleMinigameClosed()
+    {
+        // Re-evaluate movement unblock when minigame UI closes
+        if (!isStunned && GameSys.Instance != null && GameSys.Instance.CurrentState == GameState.GreenLight)
+        {
+            SetMovementBlocked(false);
+        }
+    }
+
     private void Update()
     {
         if (!movementBlocked)
@@ -185,8 +210,10 @@ public class PlayerMovement : MonoBehaviour, IMovable
 
     public void SetMovementBlocked(bool blocked)
     {
-        // Allow unblocking ONLY if current state is GreenLight and player is not stunned
-        if (!blocked && (isStunned || (GameSys.Instance != null && GameSys.Instance.CurrentState != GameState.GreenLight)))
+        bool isMinigameActive = MinigameManager.Instance != null && MinigameManager.Instance.IsMinigameActive;
+
+        // Allow unblocking ONLY if current state is GreenLight, player is not stunned, and no minigame is active
+        if (!blocked && (isStunned || isMinigameActive || (GameSys.Instance != null && GameSys.Instance.CurrentState != GameState.GreenLight)))
         {
             movementBlocked = true;
             return;
