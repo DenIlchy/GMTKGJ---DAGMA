@@ -11266,6 +11266,9 @@ MonoBehaviour:
   resultText: {fileID: 1231927042}
   resultPanel: {fileID: 1231927043}
   pausePanel: {fileID: 1231927041}
+  sfxSource: {fileID: 24930415}
+  winClip: {fileID: 8300000, guid: be29d31f42f18c7438c74fbc5c13f208, type: 3}
+  loseClip: {fileID: 8300000, guid: ada02ac0543209f40ba26662d5cc6120, type: 3}
   trackStart: {fileID: 1664102144}
   trackEnd: {fileID: 1832909439}
   playerMover: {fileID: 8388930211472560785}
@@ -14576,8 +14579,8 @@ Transform:
   m_GameObject: {fileID: 2037948028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.8572, y: -7.4106, z: 7.0639}
-  m_LocalScale: {x: 26.4178, y: 21.795187, z: 7.6137414}
+  m_LocalPosition: {x: 1.6742, y: -7.1953, z: 7.0639}
+  m_LocalScale: {x: 26.050594, y: 21.363642, z: 7.6137414}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 629144167}
