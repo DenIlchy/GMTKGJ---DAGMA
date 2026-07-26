@@ -6746,6 +6746,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -462
       objectReference: {fileID: 0}
+    - target: {fileID: 422726657822726590, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 453874962878883333, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -7075,6 +7079,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5111505922420534846, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 259.81
+      objectReference: {fileID: 0}
+    - target: {fileID: 5111505922420534846, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -7137,6 +7145,18 @@ PrefabInstance:
     - target: {fileID: 5372934700757944644, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
       propertyPath: m_margin.y
       value: -8.685547
+      objectReference: {fileID: 0}
+    - target: {fileID: 5469731515993248383, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
+      propertyPath: m_text
+      value: ChangeDifficulty
+      objectReference: {fileID: 0}
+    - target: {fileID: 5469731515993248383, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
+      propertyPath: m_margin.x
+      value: -36.07605
+      objectReference: {fileID: 0}
+    - target: {fileID: 5469731515993248383, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
+      propertyPath: m_margin.z
+      value: -26.160889
       objectReference: {fileID: 0}
     - target: {fileID: 5669561706171838338, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
       propertyPath: m_LocalScale.x
@@ -7205,6 +7225,10 @@ PrefabInstance:
     - target: {fileID: 6834405860764247805, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6946530904828281873, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
+      propertyPath: m_Name
+      value: ChangeDifficulty
       objectReference: {fileID: 0}
     - target: {fileID: 7112387954179220066, guid: 9cccdf014f856744f9f0700e3613a5ff, type: 3}
       propertyPath: m_IsActive
