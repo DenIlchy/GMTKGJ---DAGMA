@@ -35,6 +35,16 @@ public class PlayerMovement : MonoBehaviour, IMovable
     [Tooltip("Float parameter name in Animator Blend Tree (0.0 = idle/0%, 1.0 = max speed/100%).")]
     [SerializeField] private string speedParamName = "Speed";
 
+    [Header("Footsteps")]
+    [Tooltip("AudioSource used for player footsteps. Created at runtime if left unassigned and no AudioSource exists on this GameObject.")]
+    [SerializeField] private AudioSource footstepSource;
+    [Tooltip("Footstep clip played on each alternating step while the character is moving in the Blend Tree.")]
+    [SerializeField] private AudioClip footstepClip;
+    [Tooltip("Optional UI Slider to control footstep volume.")]
+    [SerializeField] private Slider footstepVolumeSlider;
+    [SerializeField] private float footstepPitchVariation = 0.05f;
+    [SerializeField] private float minSpeedForFootstep = 0.01f;
+
     private float currentSpeed;
     private Key? lastPressedKey;
     private bool movementBlocked;
@@ -59,6 +69,9 @@ public class PlayerMovement : MonoBehaviour, IMovable
 
     private void Start()
     {
+        EnsureFootstepAudioSource();
+        BindFootstepVolumeSlider();
+
         if (MinigameManager.Instance != null)
         {
             MinigameManager.Instance.OnMinigameClosed += HandleMinigameClosed;
@@ -150,6 +163,37 @@ public class PlayerMovement : MonoBehaviour, IMovable
     {
         currentSpeed += accelerationPerTap;
         currentSpeed = Mathf.Clamp(currentSpeed, 0f, maxSpeed);
+        PlayFootstep();
+    }
+
+    private void EnsureFootstepAudioSource()
+    {
+        if (footstepSource != null)
+            return;
+
+        footstepSource = GetComponent<AudioSource>();
+        if (footstepSource == null)
+            footstepSource = gameObject.AddComponent<AudioSource>();
+    }
+
+    private void BindFootstepVolumeSlider()
+    {
+        if (footstepVolumeSlider == null || footstepSource == null)
+            return;
+
+        footstepVolumeSlider.SetValueWithoutNotify(footstepSource.volume);
+        footstepVolumeSlider.onValueChanged.AddListener(value => footstepSource.volume = value);
+    }
+
+    private void PlayFootstep()
+    {
+        if (footstepSource == null || footstepClip == null)
+            return;
+        if (currentSpeed < minSpeedForFootstep)
+            return;
+
+        footstepSource.pitch = Random.Range(1f - footstepPitchVariation, 1f + footstepPitchVariation);
+        footstepSource.PlayOneShot(footstepClip);
     }
 
     private void MoveForward()

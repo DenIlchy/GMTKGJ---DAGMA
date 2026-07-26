@@ -1,0 +1,47 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-denid" at "2026-07-26T12:44:31.8840501Z"
+Built from '6000.3/staging' branch; Version is '6000.3.20f1 (c9ba695d4f07) revision 13220457'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) Core' Language: 'en' Physical Memory: 40584 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-07-26T12:44:31Z
+[Licensing::Client] Error: HandshakeResponse reported an error:
+	ResponseCode: 505
+	ResponseStatus: Unsupported protocol version '1.18.1'.
+[Licensing::Module] Error: Failed to handshake to channel: "LicenseClient-denid"
+[Licensing::IpcConnector] LicenseClient-denid channel disconnected successfully.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-denid-6000.3.20" at "2026-07-26T12:44:32.8503939Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 37720, path: "C:/Program Files/Unity/Hub/Editor/6000.3.20f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.1+9fbee8e
+  Session Id:              0bb70696789f4ecfa7ac95f99d3f1980
+  Correlation Id:          5ffc6918041efbd2f5feff2808f65d04
+  External correlation Id: 1408361224856054749
+  Machine Id:              vLeQfUctB7Ld40Ca9ukPc/gRm3M=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-denid-6000.3.20" (connect: 0.00s, validation: 0.00s, handshake: 0.01s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-denid-6000.3.20-notifications" at "2026-07-26T12:44:32.8587022Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 18968276697286-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 0.99s
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.20f1\Editor\Unity.exe
+-batchmode
+-nographics
+-quit
+-projectPath
+C:\GameDev\GMTKGJ---DAGMA
+-logFile
+C:\GameDev\GMTKGJ---DAGMA\compile_log.txt
+Successfully changed project path to: C:\GameDev\GMTKGJ---DAGMA
+C:/GameDev/GMTKGJ---DAGMA
+Exiting without the bug reporter. Application will terminate with return code 1
