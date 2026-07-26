@@ -21,6 +21,11 @@ public class GameUI : MonoBehaviour
     [Tooltip("Panel shown when the game is paused.")]
     [SerializeField] private GameObject pausePanel;
 
+    [Header("Result SFX")]
+    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioClip winClip;
+    [SerializeField] private AudioClip loseClip;
+
     [Header("Race Progress")]
     [SerializeField] private Transform trackStart;
     [SerializeField] private Transform trackEnd;
@@ -67,6 +72,8 @@ public class GameUI : MonoBehaviour
 
         if (pausePanel != null)
             pausePanel.SetActive(false);
+
+        EnsureSfxSource();
     }
 
     private void OnDestroy()
@@ -98,7 +105,7 @@ public class GameUI : MonoBehaviour
     private void UpdateStateText(GameState state)
     {
         if (phaseTimerText != null)
-            phaseTimerText.gameObject.SetActive(state == GameState.Intro || state == GameState.GreenLight || state == GameState.RedLightWarning || state == GameState.RedLight);
+            phaseTimerText.gameObject.SetActive(!gameSys.IsWaitingForStartPanel && (state == GameState.Intro || state == GameState.GreenLight || state == GameState.RedLightWarning || state == GameState.RedLight));
 
         if (stateText == null)
             return;
@@ -139,12 +146,12 @@ public class GameUI : MonoBehaviour
 
         if (state == GameState.Victory)
         {
-            ShowResult("You Win!", greenColor);
+            ShowResult("You Win!", greenColor, true);
             resultShown = true;
         }
         else if (state == GameState.GameOver)
         {
-            ShowResult("You Lose!", redColor);
+            ShowResult("You Lose!", redColor, false);
             resultShown = true;
         }
     }
@@ -192,7 +199,7 @@ public class GameUI : MonoBehaviour
         slider.SetValueWithoutNotify(Mathf.Clamp01(progress));
     }
 
-    private void ShowResult(string message, Color color)
+    private void ShowResult(string message, Color color, bool isWin)
     {
         if (resultText != null)
         {
@@ -203,6 +210,34 @@ public class GameUI : MonoBehaviour
 
         if (resultPanel != null)
             resultPanel.SetActive(true);
+
+        PlayResultSound(isWin);
+    }
+
+    private void PlayResultSound(bool isWin)
+    {
+        if (sfxSource == null)
+            return;
+
+        AudioClip clip = isWin ? winClip : loseClip;
+        if (clip != null)
+        {
+            sfxSource.PlayOneShot(clip);
+        }
+        else
+        {
+            Debug.Log($"[GameUI] *{(isWin ? "WIN" : "LOSE")}* SFX placeholder");
+        }
+    }
+
+    private void EnsureSfxSource()
+    {
+        if (sfxSource != null)
+            return;
+
+        sfxSource = GetComponent<AudioSource>();
+        if (sfxSource == null)
+            sfxSource = gameObject.AddComponent<AudioSource>();
     }
 
     public void TogglePause()

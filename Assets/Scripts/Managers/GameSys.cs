@@ -47,6 +47,8 @@ public class GameSys : MonoBehaviour
     [Header("Level")]
     [Tooltip("Delay before the first Green Light starts (Intro state).")]
     [SerializeField] private float introDuration = 2f;
+    [Tooltip("Panel shown before the intro. The intro starts only after this panel is deactivated.")]
+    [SerializeField] private GameObject startPanel;
 
     [Header("Penalty")]
     [Tooltip("Absolute speed above which a mover is considered violating during Red Light.")]
@@ -55,6 +57,7 @@ public class GameSys : MonoBehaviour
     [SerializeField] private float pushBackDistance = 2f;
 
     public GameState CurrentState { get; private set; } = GameState.Intro;
+    public bool IsWaitingForStartPanel => startPanel != null && startPanel.activeInHierarchy;
     public int CurrentCycle { get; private set; } = 0;
 
     public event Action<GameState> OnStateChanged;
@@ -90,6 +93,11 @@ public class GameSys : MonoBehaviour
 
     private void Start()
     {
+        if (startPanel == null)
+            Debug.LogWarning("[GameSys] Start Panel is not assigned in the Inspector — the game will start immediately without waiting for it.");
+        else if (!startPanel.activeInHierarchy)
+            Debug.LogWarning("[GameSys] Start Panel is assigned but already inactive at scene start — the game will start immediately. Make sure the panel is active in the scene.");
+
         RegisterSceneMovers();
         gameLoopCoroutine = StartCoroutine(GameLoop());
     }
@@ -119,8 +127,12 @@ public class GameSys : MonoBehaviour
 
     private IEnumerator GameLoop()
     {
-        SetState(GameState.Intro);
         SetAllMovementBlocked(true);
+
+        while (IsWaitingForStartPanel)
+            yield return null;
+
+        SetState(GameState.Intro);
         yield return RunPhaseTimer(introDuration);
 
         while (!gameEnded)
@@ -254,6 +266,12 @@ public class GameSys : MonoBehaviour
     {
         CurrentState = newState;
         OnStateChanged?.Invoke(newState);
+    }
+
+    public void DismissStartPanel()
+    {
+        if (startPanel != null)
+            startPanel.SetActive(false);
     }
 
     public float GetSpeedThreshold() => speedThreshold;
