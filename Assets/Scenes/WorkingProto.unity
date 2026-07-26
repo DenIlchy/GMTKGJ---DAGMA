@@ -22779,12 +22779,16 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4710117769528148110, guid: 01d2422167e8c294f8d241beebe1e2e2, type: 3}
+      propertyPath: maxSpeed
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4710117769528148110, guid: 01d2422167e8c294f8d241beebe1e2e2, type: 3}
       propertyPath: brakingDelay
       value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 4710117769528148110, guid: 01d2422167e8c294f8d241beebe1e2e2, type: 3}
       propertyPath: deceleration
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 4710117769528148110, guid: 01d2422167e8c294f8d241beebe1e2e2, type: 3}
       propertyPath: footstepClip
