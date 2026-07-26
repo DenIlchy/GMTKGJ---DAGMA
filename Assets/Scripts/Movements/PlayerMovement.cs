@@ -53,6 +53,10 @@ public class PlayerMovement : MonoBehaviour, IMovable
 
     private void Awake()
     {
+        isStunned = false;
+        movementBlocked = true;
+        currentSpeed = 0f;
+
         if (GetComponent<Collider>() == null)
             gameObject.AddComponent<CapsuleCollider>();
 

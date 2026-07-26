@@ -4810,14 +4810,55 @@ MonoBehaviour:
   microwaveDisplayImage: {fileID: 1521558904}
   minTargetLine: {fileID: 913019872}
   maxTargetLine: {fileID: 1283366109}
-  cookingSprite: {fileID: 21300000, guid: ecae87fd0db21f44d81788c1f8801330, type: 3}
-  frozenSprite: {fileID: 21300000, guid: 7a3c01e3efadc5a488c5aa2ca2e08754, type: 3}
-  perfectSprite: {fileID: 21300000, guid: 965c35d426b512d478b0d14976bc3eb8, type: 3}
-  burntSprite: {fileID: 21300000, guid: 7d6c8544b49203e45b78aa7f6de3bd28, type: 3}
+  animationFrames:
+  - {fileID: 21300000, guid: ce2290daaa10cbd47a5b2a1f044d20a3, type: 3}
+  - {fileID: 21300000, guid: 4f2b01f842fe1d145a307b84b3004ab5, type: 3}
+  - {fileID: 21300000, guid: 5b171d39501e628459aac96429b160f3, type: 3}
+  - {fileID: 21300000, guid: 642ecbe4d42766941962d2316ccda5bc, type: 3}
+  - {fileID: 21300000, guid: 46584a3f1c423e244bb57eaa4b58d289, type: 3}
+  - {fileID: 21300000, guid: 71f0f7b36789b3847a88c8d8587cba90, type: 3}
+  - {fileID: 21300000, guid: 779d092f968122741bc26bb1a082e14b, type: 3}
+  - {fileID: 21300000, guid: fc3a32d172fd07b4e97f7acd7597e24d, type: 3}
+  - {fileID: 21300000, guid: ecfe03739653349419a09af0fe79d41a, type: 3}
+  - {fileID: 21300000, guid: 46962e185c267354381f85be9b5e7d7e, type: 3}
+  - {fileID: 21300000, guid: c590d571fe0002743a25e2c753a3fe2a, type: 3}
+  - {fileID: 21300000, guid: 75afefd45eb67e5408741273abfec8fe, type: 3}
+  - {fileID: 21300000, guid: d2fc666139dad474d9823058233de7c3, type: 3}
+  - {fileID: 21300000, guid: 1f90fc5b7664c5e4bb4a2143ce6645d1, type: 3}
+  - {fileID: 21300000, guid: 96b853fc7dd347c4499f9ec3f5c562f1, type: 3}
+  - {fileID: 21300000, guid: 1f83dfd5cda1ece49ac93ca92fbe02e8, type: 3}
+  - {fileID: 21300000, guid: 2a8a81f0054f9364a84949db61e0a797, type: 3}
+  - {fileID: 21300000, guid: 61a560759cb6b3144a57b00049a0e116, type: 3}
+  - {fileID: 21300000, guid: 814efbeaa31bbfc459111099dfc21918, type: 3}
+  - {fileID: 21300000, guid: c684f2292b0842f4e92854f802318dff, type: 3}
+  - {fileID: 21300000, guid: 8474a3f8d8d263f4e9ee9810f4f3fd66, type: 3}
+  - {fileID: 21300000, guid: ff4b291938cadca43a091b6af526665e, type: 3}
+  - {fileID: 21300000, guid: f8d7017ad18e8c0409488a53b2cdf07b, type: 3}
+  - {fileID: 21300000, guid: a02e06f099b95b442a8a9227b5852d05, type: 3}
+  - {fileID: 21300000, guid: 33623aa6542bf924e980016af857b59b, type: 3}
+  - {fileID: 21300000, guid: c75a95885e52cfb46969f65ff98f5e3a, type: 3}
+  - {fileID: 21300000, guid: a41a7fcd84d65cd4f82abc31c569172a, type: 3}
+  - {fileID: 21300000, guid: a09ae280485b93540b7306def4792031, type: 3}
+  - {fileID: 21300000, guid: 2dc3f112842e05d4295a5eb9c4e67a16, type: 3}
+  - {fileID: 21300000, guid: 032527e7f0cfd1d44b8bcb58f45b85b2, type: 3}
+  - {fileID: 21300000, guid: 798fa6ab4b0cd4b4ea7196a12caecf71, type: 3}
+  - {fileID: 21300000, guid: 28ddbb0d66750294190e3c4aec132d52, type: 3}
+  - {fileID: 21300000, guid: c3df873bb80d5bb4c8c227f2649423f2, type: 3}
+  - {fileID: 21300000, guid: 69338e696c5dff843b371740dd1d8993, type: 3}
+  - {fileID: 21300000, guid: 1d8fb3e89abbdaa429fff88d9e3df383, type: 3}
+  - {fileID: 21300000, guid: 57935f1aa896bb24a88808f56e28bbe5, type: 3}
+  - {fileID: 21300000, guid: 8eadd2fdf9126f443be19f5a5a4bd0c1, type: 3}
+  - {fileID: 21300000, guid: 1580375a3ed672c40a156777d11bc8a7, type: 3}
+  - {fileID: 21300000, guid: 6e3b359435803f94881ba6cb2eea7b57, type: 3}
+  - {fileID: 21300000, guid: 5c034a01c6dcc02438f1dfafcebe0808, type: 3}
+  - {fileID: 21300000, guid: ecdbde678fc19b54e9c81c0741f9f829, type: 3}
+  - {fileID: 21300000, guid: a0087fd56ddf0b74da7ba9777102cc10, type: 3}
+  - {fileID: 21300000, guid: 6c4e06efea3f81848954c2d5fd047ea3, type: 3}
+  - {fileID: 21300000, guid: 4f52a271cbf538441a8d05d39e4d9ca5, type: 3}
   initialSpeed: 0.1
   acceleration: 0.8
-  perfectZoneMin: 0.7
-  perfectZoneMax: 0.8
+  perfectZoneMin: 0.511
+  perfectZoneMax: 0.733
   resultDelay: 0.8
   sfxSource: {fileID: 741666497}
   buttonClickClip: {fileID: 8300000, guid: 37b2cec75fe9bff4bae2384fe562ff4e, type: 3}
@@ -10451,16 +10492,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: ce2290daaa10cbd47a5b2a1f044d20a3, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
@@ -10485,7 +10526,7 @@ RectTransform:
   m_GameObject: {fileID: 1521558903}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2.64, y: 2.12, z: 2.12}
+  m_LocalScale: {x: 1.46, y: 2.12, z: 1.46}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 741666495}
@@ -10493,7 +10534,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -5, y: -57}
-  m_SizeDelta: {x: 300, y: 300}
+  m_SizeDelta: {x: 600, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1557898987
 GameObject:
@@ -14790,7 +14831,8 @@ PrefabInstance:
       value: Kitchen
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: -8391222552659086748, guid: e9121985fe1b3bc4d9d15a693c3d4512, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e9121985fe1b3bc4d9d15a693c3d4512, type: 3}

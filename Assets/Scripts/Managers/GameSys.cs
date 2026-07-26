@@ -73,6 +73,7 @@ public class GameSys : MonoBehaviour
 
     private void Awake()
     {
+        Time.timeScale = 1f;
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -224,6 +225,11 @@ public class GameSys : MonoBehaviour
         gameEnded = true;
         SetAllMovementBlocked(true);
 
+        if (MinigameManager.Instance != null)
+        {
+            MinigameManager.Instance.ForceCloseMinigame();
+        }
+
         if (gameLoopCoroutine != null)
         {
             StopCoroutine(gameLoopCoroutine);
@@ -240,6 +246,8 @@ public class GameSys : MonoBehaviour
             SetState(GameState.GameOver);
             OnGameOver?.Invoke();
         }
+
+        Time.timeScale = 0f;
     }
 
     private void SetState(GameState newState)
