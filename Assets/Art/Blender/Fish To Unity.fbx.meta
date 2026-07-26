@@ -55,7 +55,14 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.012093747
+        functionName: Bang
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: a9648122a78ca2f44a97baef4d60df93, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -142,7 +149,14 @@ ModelImporter:
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events: []
+      events:
+      - time: 0.5701232
+        functionName: Bang
+        data: 
+        objectReferenceParameter: {fileID: 11500000, guid: a6a9f2985a2cd034ebd1f720ed35d25a, type: 3}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}

@@ -241,6 +241,18 @@ public class GameUI : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
+    public void ChangeScene(string sceneName)
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(sceneName);
+    }
+
+    public void ChangeScene(int buildIndex)
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(buildIndex);
+    }
+
     public void QuitToMenu()
     {
         Time.timeScale = 1f;
