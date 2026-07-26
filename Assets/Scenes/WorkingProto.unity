@@ -2542,6 +2542,7 @@ MonoBehaviour:
   redLightDurationRange: {x: 8, y: 10}
   postRedLightDelayRange: {x: 0, y: 2}
   penaltyFeedbackDuration: 1
+  redLightTimerStartDelay: 1.7
   introDuration: 2
   speedThreshold: 1.5
   pushBackDistance: 4
