@@ -81,6 +81,11 @@ public class DAGMAPenaltyController : MonoBehaviour
             Debug.Log("[DAGMAPenaltyController] Player is innocent! Proceeding immediately to minigame without stun delay.");
         }
 
+        if (WatcherVisuals.Instance != null)
+        {
+            WatcherVisuals.Instance.ResetViolatorParameters();
+        }
+
         Debug.Log("[DAGMAPenaltyController] Penalty sequence complete.");
         onComplete?.Invoke();
     }
