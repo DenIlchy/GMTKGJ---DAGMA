@@ -66,7 +66,6 @@ public class GameUI : MonoBehaviour
     private string LoseResultMessage => theme != null ? theme.LoseResultMessage : "You Lose!";
 
     private GameSys gameSys;
-    private bool isPaused;
     private bool resultShown;
 
     private void Start()
@@ -102,7 +101,9 @@ public class GameUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        Time.timeScale = 1f;
+        // Unconditional safety net: a scene unloaded while paused would otherwise
+        // leave timeScale at 0, and scenes without a GameSys (e.g. Menu) never call Resume().
+        TimeControl.Resume();
 
         if (gameSys == null)
             return;
@@ -270,7 +271,7 @@ public class GameUI : MonoBehaviour
         if (currentState == GameState.Victory || currentState == GameState.GameOver)
             return;
 
-        if (isPaused)
+        if (TimeControl.IsPaused)
             Continue();
         else
             Pause();
@@ -278,8 +279,7 @@ public class GameUI : MonoBehaviour
 
     public void Pause()
     {
-        isPaused = true;
-        Time.timeScale = 0f;
+        TimeControl.Pause();
 
         if (pausePanel != null)
             pausePanel.SetActive(true);
@@ -287,8 +287,7 @@ public class GameUI : MonoBehaviour
 
     public void Continue()
     {
-        isPaused = false;
-        Time.timeScale = 1f;
+        TimeControl.Resume();
 
         if (pausePanel != null)
             pausePanel.SetActive(false);
@@ -296,25 +295,25 @@ public class GameUI : MonoBehaviour
 
     public void Restart()
     {
-        Time.timeScale = 1f;
+        TimeControl.Resume();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void ChangeScene(string sceneName)
     {
-        Time.timeScale = 1f;
+        TimeControl.Resume();
         SceneManager.LoadScene(sceneName);
     }
 
     public void ChangeScene(int buildIndex)
     {
-        Time.timeScale = 1f;
+        TimeControl.Resume();
         SceneManager.LoadScene(buildIndex);
     }
 
     public void QuitToMenu()
     {
-        Time.timeScale = 1f;
+        TimeControl.Resume();
         SceneManager.LoadScene(0);
     }
 

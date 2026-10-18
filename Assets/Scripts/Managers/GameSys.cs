@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public enum GameState
@@ -85,19 +84,21 @@ public class GameSys : MonoBehaviour
     public event Action OnGameOver;
     public event Action<float> OnPhaseTimerUpdated;
 
-    private readonly List<IMovable> movers = new List<IMovable>();
+    private readonly MoverRegistry registry = new MoverRegistry();
+    private bool allMovementBlocked = true;
     private Coroutine gameLoopCoroutine;
     private bool gameEnded;
 
     private void Awake()
     {
-        Time.timeScale = 1f;
+        TimeControl.Resume();
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
         Instance = this;
+        registry.OnMoverRegistered += HandleMoverRegistered;
     }
 
     private void OnDestroy()
@@ -113,31 +114,23 @@ public class GameSys : MonoBehaviour
         else if (!startPanel.activeInHierarchy)
             Debug.LogWarning("[GameSys] Start Panel is assigned but already inactive at scene start — the game will start immediately. Make sure the panel is active in the scene.");
 
-        RegisterSceneMovers();
         gameLoopCoroutine = StartCoroutine(GameLoop());
     }
 
-    private void RegisterSceneMovers()
+    private void HandleMoverRegistered(IMovable mover)
     {
-        movers.Clear();
-        foreach (var mb in FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
-        {
-            if (mb is IMovable movable && !movers.Contains(movable))
-            {
-                movers.Add(movable);
-            }
-        }
+        // A mover that registers after the loop already blocked everyone must not be left unblocked.
+        mover.SetMovementBlocked(allMovementBlocked);
     }
 
     public void RegisterMover(IMovable mover)
     {
-        if (!movers.Contains(mover))
-            movers.Add(mover);
+        registry.Register(mover);
     }
 
     public void UnregisterMover(IMovable mover)
     {
-        movers.Remove(mover);
+        registry.Unregister(mover);
     }
 
     private IEnumerator GameLoop()
@@ -173,9 +166,7 @@ public class GameSys : MonoBehaviour
             // --- Red Light: timer is out => speed check ---
             float redDuration = UnityEngine.Random.Range(RedLightDurationRange.x, RedLightDurationRange.y);
 
-            List<IMovable> violators = movers
-                .Where(m => m != null && m.GetCurrentSpeed() > SpeedThreshold)
-                .ToList();
+            List<IMovable> violators = ViolationDetector.FindViolators(registry.Movers, SpeedThreshold);
 
             // --- Visual feedback, then penalty ---
             if (violators.Count > 0)
@@ -214,7 +205,8 @@ public class GameSys : MonoBehaviour
 
     private void SetAllMovementBlocked(bool blocked)
     {
-        foreach (var mover in movers)
+        allMovementBlocked = blocked;
+        foreach (var mover in registry.Movers)
         {
             if (mover != null)
                 mover.SetMovementBlocked(blocked);
@@ -270,7 +262,7 @@ public class GameSys : MonoBehaviour
             OnGameOver?.Invoke();
         }
 
-        Time.timeScale = 0f;
+        TimeControl.Freeze();
     }
 
     private void SetState(GameState newState)

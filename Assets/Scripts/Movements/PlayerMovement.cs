@@ -71,6 +71,7 @@ public class PlayerMovement : MonoBehaviour, IMovable
     private bool movementBlocked;
     private int speedParamHash;
     private float lastTapTime;
+    private GameSys gameSys;
 
     private void Awake()
     {
@@ -92,8 +93,35 @@ public class PlayerMovement : MonoBehaviour, IMovable
         speedParamHash = Animator.StringToHash(SpeedParamName);
     }
 
+    private void OnEnable()
+    {
+        ConnectToGameSystem();
+    }
+
+    private void OnDisable()
+    {
+        if (gameSys == null)
+            return;
+
+        gameSys.UnregisterMover(this);
+        gameSys = null;
+    }
+
+    private void ConnectToGameSystem()
+    {
+        if (gameSys != null)
+            return;
+
+        gameSys = GameSys.Instance;
+        if (gameSys == null)
+            return;
+
+        gameSys.RegisterMover(this);
+    }
+
     private void Start()
     {
+        ConnectToGameSystem();
         EnsureFootstepAudioSource();
         BindFootstepVolumeSlider();
 
