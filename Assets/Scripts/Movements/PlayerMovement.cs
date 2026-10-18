@@ -100,6 +100,8 @@ public class PlayerMovement : MonoBehaviour, IMovable
 
     private void OnDisable()
     {
+        isStunned = false;
+
         if (gameSys == null)
             return;
 

@@ -27,6 +27,7 @@ public class OpponentMovement : MonoBehaviour, IMovable
 
     private float currentSpeed;
     private bool movementBlocked;
+    private bool isStunned;
     private bool canStep;
     private bool nextStepIsLeft;
     private float nextStepTime;
@@ -34,11 +35,7 @@ public class OpponentMovement : MonoBehaviour, IMovable
     private GameSys gameSys;
 
     public bool IsPlayer => false;
-    // Opponents do not currently track stun state at all (ApplyStunAnimation only fires the
-    // animator trigger and does not block movement), so returning false preserves today's
-    // behaviour; when the opponent gains a real stun presenter it will start participating
-    // in the gate automatically.
-    public bool IsStunned => false;
+    public bool IsStunned => isStunned;
     public Transform MoverTransform => transform;
 
     private void Start()
@@ -55,6 +52,7 @@ public class OpponentMovement : MonoBehaviour, IMovable
     {
         CancelWarningRisk();
         canStep = false;
+        isStunned = false;
 
         if (gameSys == null)
             return;
@@ -181,20 +179,40 @@ public class OpponentMovement : MonoBehaviour, IMovable
 
     public void ApplyStunAnimation(float duration)
     {
+        StartCoroutine(StunAnimationRoutine(duration));
+    }
+
+    private IEnumerator StunAnimationRoutine(float duration)
+    {
+        isStunned = true;
         var anim = GetComponentInChildren<Animator>();
         if (anim != null) anim.SetTrigger("Stun");
         Debug.Log($"[OpponentMovement] Stun animation applied to opponent for {duration}s!");
+        yield return new WaitForSeconds(duration);
+
+        isStunned = false;
+        GameSys.Instance?.ReevaluateMovement();
     }
 
     public void SetMovementBlocked(bool blocked)
     {
         movementBlocked = blocked;
-        if (!blocked)
+        if (blocked)
+        {
+            currentSpeed = 0f;
+            canStep = false;
+            nextStepIsLeft = false;
+            CancelWarningRisk();
             return;
+        }
 
-        currentSpeed = 0f;
-        canStep = false;
-        nextStepIsLeft = false;
-        CancelWarningRisk();
+        // Unblocking mid-GreenLight (a stun expiring) must restore stepping: blocking cleared
+        // canStep and no further state change is coming. Guarded so the normal green-light path,
+        // where HandleStateChanged has already set canStep and scheduled, is not re-scheduled.
+        if (!canStep && gameSys != null && gameSys.CurrentState == GameState.GreenLight)
+        {
+            canStep = true;
+            ScheduleNextStep();
+        }
     }
 }
