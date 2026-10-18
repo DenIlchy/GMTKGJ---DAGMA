@@ -6,9 +6,10 @@ using UnityEngine;
 // One-time migration: splits Char.prefab / Rival.prefab into a logic-base + character-visual
 // prefab pair per character, under Assets/Prefabs/Characters/.
 //
-// Purely additive: nothing existing is modified or deleted. All targets are validated and all
-// output paths are checked for conflicts BEFORE anything is written — a failed run writes zero
-// assets. Run "Tools/DAGMA/Character Prefabs/Dry Run" first to see the plan.
+// Incremental and resumable: it never modifies or deletes anything that already exists
+// (pre-existing targets are ADOPTED and validated instead), writes each new asset as it goes,
+// and can be re-run safely to fill in whatever is missing after a failure.
+// Run "Tools/DAGMA/Character Prefabs/Dry Run" first — it previews exactly what Generate does.
 public static class CharacterPrefabMigration
 {
     // ---- Inputs (guids are stable references into the project, not paths) ----
@@ -36,11 +37,10 @@ public static class CharacterPrefabMigration
     {
         var problems = new List<string>();
         Inputs inputs = ResolveInputs(problems);
-        List<string> conflicts = FindConflicts();
 
         var report = new StringBuilder();
         report.AppendLine("[CharacterPrefabMigration] DRY RUN — nothing will be written.");
-        ReportProblems(report, problems, conflicts);
+        ReportInputProblems(report, problems);
 
         if (problems.Count == 0)
         {
@@ -49,13 +49,23 @@ public static class CharacterPrefabMigration
                               $"PlayerMovementConfig='{AssetDatabase.GetAssetPath(inputs.playerMovementConfig)}', " +
                               $"model='{AssetDatabase.GetAssetPath(inputs.microwaveModel)}', " +
                               $"controller='{AssetDatabase.GetAssetPath(inputs.microwaveController)}'.");
-            report.AppendLine("Would create:");
-            report.AppendLine($"  {PlayerBasePath}   (Regular; root 'PlayerCharacter', Layer 6, PlayerMovement + CapsuleCollider center {NormalizedColliderCenter})");
-            report.AppendLine($"  {RivalBasePath}   (Regular; root 'Rival', Layer 7, OpponentMovement [profile null] + BoxCollider)");
-            report.AppendLine($"  {CVMicrowavePath}   (Variant of the imported model; adds Animator on root)");
-            report.AppendLine($"  {PlayerMicrowavePath}   (Variant of PlayerCharacter_Base + CV_Microwave child)");
-            report.AppendLine($"  {RivalMicrowavePath}   (Variant of Rival_Base + CV_Microwave child)");
             AppendOffsetReport(report);
+        }
+
+        report.AppendLine("Plan per target:");
+        foreach (string path in new[] { PlayerBasePath, RivalBasePath, CVMicrowavePath, PlayerMicrowavePath, RivalMicrowavePath })
+        {
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (existing == null)
+            {
+                report.AppendLine($"  WOULD CREATE  {path}");
+            }
+            else
+            {
+                report.AppendLine($"  WOULD ADOPT (exists)  {path}");
+                foreach (string warning in ValidateAdopted(path, existing))
+                    report.AppendLine($"    WARNING: {warning}");
+            }
         }
 
         Debug.Log(report.ToString());
@@ -66,41 +76,42 @@ public static class CharacterPrefabMigration
     {
         var problems = new List<string>();
         Inputs inputs = ResolveInputs(problems);
-        List<string> conflicts = FindConflicts();
-
-        if (problems.Count > 0 || conflicts.Count > 0)
+        if (problems.Count > 0)
         {
             var report = new StringBuilder();
-            report.AppendLine("[CharacterPrefabMigration] ABORTED — nothing was written.");
-            ReportProblems(report, problems, conflicts);
+            report.AppendLine("[CharacterPrefabMigration] ABORTED — missing inputs, nothing was attempted.");
+            ReportInputProblems(report, problems);
             Debug.LogError(report.ToString());
             return;
         }
 
         var created = new List<string>();
+        var adopted = new List<string>();
+        var warnings = new List<string>();
+        string failure = null;
 
         // Track every temporary instantiated GameObject so failure paths can clean up.
         var temporaries = new List<GameObject>();
         try
         {
-            // --- Base prefabs: plain new GameObjects saved as Regular prefabs ---
-            GameObject playerBase = CreatePlayerBase(inputs);
-            temporaries.Add(playerBase);
-            created.Add(SavePrefab(playerBase, PlayerBasePath));
+            created.AddRange(AdoptOrCreate(PlayerBasePath, adopted, warnings,
+                () => SavePrefab(CreatePlayerBase(inputs, temporaries), PlayerBasePath)));
 
-            GameObject rivalBase = CreateRivalBase();
-            temporaries.Add(rivalBase);
-            created.Add(SavePrefab(rivalBase, RivalBasePath));
+            created.AddRange(AdoptOrCreate(RivalBasePath, adopted, warnings,
+                () => SavePrefab(CreateRivalBase(temporaries), RivalBasePath)));
 
-            GameObject cvMicrowave = CreateCVMicrowave(inputs, temporaries);
-            created.Add(SavePrefab(cvMicrowave, CVMicrowavePath));
+            created.AddRange(AdoptOrCreate(CVMicrowavePath, adopted, warnings,
+                () => SavePrefab(CreateCVMicrowave(inputs, temporaries), CVMicrowavePath)));
 
-            // --- Variants: InstantiatePrefab on the base, so SaveAsPrefabAsset produces a Variant ---
-            GameObject playerMicrowave = CreateVariant(PlayerBasePath, CVMicrowavePath, "PlayerCharacter_Microwave", temporaries);
-            created.Add(SavePrefab(playerMicrowave, PlayerMicrowavePath));
+            created.AddRange(AdoptOrCreate(PlayerMicrowavePath, adopted, warnings,
+                () => SavePrefab(CreateVariant(PlayerBasePath, CVMicrowavePath, "PlayerCharacter_Microwave", temporaries), PlayerMicrowavePath)));
 
-            GameObject rivalMicrowave = CreateVariant(RivalBasePath, CVMicrowavePath, "Rival_Microwave", temporaries);
-            created.Add(SavePrefab(rivalMicrowave, RivalMicrowavePath));
+            created.AddRange(AdoptOrCreate(RivalMicrowavePath, adopted, warnings,
+                () => SavePrefab(CreateVariant(RivalBasePath, CVMicrowavePath, "Rival_Microwave", temporaries), RivalMicrowavePath)));
+        }
+        catch (System.Exception e)
+        {
+            failure = e.Message;
         }
         finally
         {
@@ -114,7 +125,96 @@ public static class CharacterPrefabMigration
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log(BuildFinalReport(created));
+        string finalReport = BuildFinalReport(created, adopted, warnings, failure);
+        if (failure != null)
+            Debug.LogError(finalReport);
+        else
+            Debug.Log(finalReport);
+    }
+
+    // Returns the path in `created` if it had to be built, or records it in `adopted` —
+    // adopted assets are validated and their discrepancies logged as warnings, never thrown.
+    private static List<string> AdoptOrCreate(string path, List<string> adopted, List<string> warnings, System.Func<string> create)
+    {
+        var result = new List<string>();
+        GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        if (existing != null)
+        {
+            adopted.Add(path);
+            foreach (string warning in ValidateAdopted(path, existing))
+                warnings.Add($"{path}: {warning}");
+            return result;
+        }
+
+        result.Add(create());
+        return result;
+    }
+
+    private static List<string> ValidateAdopted(string path, GameObject asset)
+    {
+        var warnings = new List<string>();
+        string name = System.IO.Path.GetFileNameWithoutExtension(path);
+
+        switch (name)
+        {
+            case "PlayerCharacter_Base":
+                if (asset.GetComponent<PlayerMovement>() == null)
+                    warnings.Add("no PlayerMovement component.");
+                var movement = asset.GetComponent<PlayerMovement>();
+                if (movement != null)
+                {
+                    var so = new SerializedObject(movement);
+                    WarnIfMissingFields(so, warnings, "movementConfig", "animator");
+                    var configProp = so.FindProperty("movementConfig");
+                    if (configProp != null && configProp.objectReferenceValue == null)
+                        warnings.Add("movementConfig is null — expected PlayerMovement_Default.");
+                    if (so.FindProperty("animator")?.objectReferenceValue != null)
+                        warnings.Add("animator is assigned — should be null so variants auto-find their own child Animator.");
+                }
+                ValidateSingleCollider(asset, warnings);
+                if (asset.layer != 6)
+                    warnings.Add($"layer is {asset.layer}, expected 6.");
+                break;
+
+            case "Rival_Base":
+                if (asset.GetComponent<OpponentMovement>() == null)
+                    warnings.Add("no OpponentMovement component.");
+                var opponent = asset.GetComponent<OpponentMovement>();
+                if (opponent != null)
+                {
+                    var so = new SerializedObject(opponent);
+                    WarnIfMissingFields(so, warnings, "profile");
+                    if (so.FindProperty("profile")?.objectReferenceValue != null)
+                        warnings.Add("profile is assigned — should be null; the scene assigns AI_Standard/AI_Risky per instance.");
+                }
+                ValidateSingleCollider(asset, warnings);
+                if (asset.layer != 7)
+                    warnings.Add($"layer is {asset.layer}, expected 7.");
+                break;
+
+            case "CV_Microwave":
+                var animator = asset.GetComponent<Animator>();
+                if (animator == null)
+                    warnings.Add("no Animator on root.");
+                else if (animator.runtimeAnimatorController == null)
+                    warnings.Add("Animator has no runtimeAnimatorController.");
+                break;
+
+            case "PlayerCharacter_Microwave":
+            case "Rival_Microwave":
+                if (PrefabUtility.GetPrefabAssetType(asset) != PrefabAssetType.Variant)
+                    warnings.Add($"PrefabAssetType is {PrefabUtility.GetPrefabAssetType(asset)}, expected Variant.");
+                break;
+        }
+        return warnings;
+    }
+
+    // The [RequireComponent] duplicate trap: exactly one Collider is expected, warn on 0 or >1.
+    private static void ValidateSingleCollider(GameObject asset, List<string> warnings)
+    {
+        int colliderCount = asset.GetComponents<Collider>().Length;
+        if (colliderCount != 1)
+            warnings.Add($"has {colliderCount} colliders, expected exactly 1.");
     }
 
     // ------------------------------------------------------------------ inputs
@@ -155,15 +255,15 @@ public static class CharacterPrefabMigration
         return asset;
     }
 
-    private static List<string> FindConflicts()
+    // Warns for each field name that no longer exists on the component — validation is
+    // warn-only, so a renamed field becomes a warning rather than an abort.
+    private static void WarnIfMissingFields(SerializedObject so, List<string> warnings, params string[] names)
     {
-        var conflicts = new List<string>();
-        foreach (string path in new[] { PlayerBasePath, RivalBasePath, CVMicrowavePath, PlayerMicrowavePath, RivalMicrowavePath })
+        foreach (string name in names)
         {
-            if (AssetDatabase.LoadAssetAtPath<Object>(path) != null)
-                conflicts.Add(path);
+            if (so.FindProperty(name) == null)
+                warnings.Add($"field '{name}' not found on {so.targetObject.GetType().Name} — was it renamed?");
         }
-        return conflicts;
     }
 
     // Throws naming the field and component type instead of letting a renamed field surface
@@ -178,9 +278,10 @@ public static class CharacterPrefabMigration
 
     // ------------------------------------------------------------------ builders
 
-    private static GameObject CreatePlayerBase(Inputs inputs)
+    private static GameObject CreatePlayerBase(Inputs inputs, List<GameObject> temporaries)
     {
         var go = new GameObject("PlayerCharacter") { layer = 6 };
+        temporaries.Add(go);
 
         PlayerMovement movement = go.AddComponent<PlayerMovement>();
         var so = new SerializedObject(movement);
@@ -212,9 +313,10 @@ public static class CharacterPrefabMigration
         return go;
     }
 
-    private static GameObject CreateRivalBase()
+    private static GameObject CreateRivalBase(List<GameObject> temporaries)
     {
         var go = new GameObject("Rival") { layer = 7 };
+        temporaries.Add(go);
 
         OpponentMovement movement = go.AddComponent<OpponentMovement>();
         var so = new SerializedObject(movement);
@@ -256,7 +358,7 @@ public static class CharacterPrefabMigration
         GameObject baseAsset = AssetDatabase.LoadAssetAtPath<GameObject>(basePrefabPath);
         GameObject cvAsset = AssetDatabase.LoadAssetAtPath<GameObject>(cvPrefabPath);
         if (baseAsset == null || cvAsset == null)
-            throw new System.InvalidOperationException($"[CharacterPrefabMigration] Cannot build '{rootName}': base or CV prefab failed to load after saving.");
+            throw new System.InvalidOperationException($"[CharacterPrefabMigration] Cannot build '{rootName}': base or CV prefab failed to load.");
 
         // InstantiatePrefab (not LoadPrefabContents) keeps the nested prefab links intact, so
         // the saved asset is a proper Variant: base edits propagate, the CV stays a child instance.
@@ -269,8 +371,11 @@ public static class CharacterPrefabMigration
         temporaries.Add(cv);
         cv.transform.SetParent(instance.transform, false);
         cv.transform.localPosition = Vector3.zero;
+        // Rotation is forced to identity because Char.prefab did the same to its model instance.
+        // Scale is deliberately NOT touched: neither Char nor Rival overrode it, so the visual
+        // keeps whatever root scale its own import produced. Forcing 1 here would silently
+        // resize any future model whose root scale is not 1.
         cv.transform.localRotation = Quaternion.identity;
-        cv.transform.localScale = Vector3.one;
 
         return instance;
     }
@@ -285,21 +390,36 @@ public static class CharacterPrefabMigration
 
     // ------------------------------------------------------------------ report
 
-    private static string BuildFinalReport(List<string> created)
+    private static string BuildFinalReport(List<string> created, List<string> adopted, List<string> warnings, string failure)
     {
         var report = new StringBuilder();
-        report.AppendLine("[CharacterPrefabMigration] GENERATE complete.");
+        report.AppendLine(failure == null
+            ? "[CharacterPrefabMigration] GENERATE complete."
+            : "[CharacterPrefabMigration] GENERATE failed partway — the run is resumable, see below.");
 
+        foreach (string path in adopted)
+        {
+            report.AppendLine($"  ADOPTED {path}");
+        }
         foreach (string path in created)
         {
             var asset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             PrefabAssetType type = PrefabUtility.GetPrefabAssetType(asset);
-            report.AppendLine($"  Created {path}  ->  PrefabAssetType.{type}");
+            report.AppendLine($"  CREATED {path}  ->  PrefabAssetType.{type}");
             if (path == CVMicrowavePath || path == PlayerMicrowavePath || path == RivalMicrowavePath)
             {
                 if (type != PrefabAssetType.Variant)
                     report.AppendLine($"  !! EXPECTED PrefabAssetType.Variant but got {type} — the prefab link did not take; investigate before swapping scenes.");
             }
+        }
+        foreach (string warning in warnings)
+            report.AppendLine($"  WARNING: {warning}");
+
+        if (failure != null)
+        {
+            report.AppendLine($"  FAILED: {failure}");
+            if (created.Count > 0)
+                report.AppendLine("  The CREATED assets listed above are on disk and valid — nothing needs deleting; re-run Generate to fill in the rest.");
         }
 
         AppendOffsetReport(report);
@@ -315,15 +435,13 @@ public static class CharacterPrefabMigration
                           $"Rival instances need no delta: they were already normalised.");
         report.AppendLine("This script changed NO scene and NO existing prefab. Char.prefab and Rival.prefab are intact and " +
                           "still used by the scenes until you swap them.");
-        report.AppendLine("Note: temporaries were instantiated into the open scene and destroyed again, so that scene is " +
+        report.AppendLine("Note: temporaries are instantiated into the open scene and destroyed again, so that scene is " +
                           "unchanged but may be marked dirty — safe to discard the dirty state.");
     }
 
-    private static void ReportProblems(StringBuilder report, List<string> problems, List<string> conflicts)
+    private static void ReportInputProblems(StringBuilder report, List<string> problems)
     {
         foreach (string problem in problems)
             report.AppendLine($"  MISSING INPUT: {problem}");
-        foreach (string conflict in conflicts)
-            report.AppendLine($"  OUTPUT EXISTS (will not overwrite): {conflict}");
     }
 }
