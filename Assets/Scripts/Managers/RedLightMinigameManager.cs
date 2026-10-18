@@ -46,6 +46,8 @@ public class RedLightMinigameManager : MonoBehaviour
     private float GracePeriodDuration => poolConfig != null ? poolConfig.GracePeriodDuration : gracePeriodDuration;
     private string GraceExpiredMessage => theme != null ? theme.GraceExpiredMessage : "Better luck next time!";
 
+    private MinigameSelector selector;
+    private MinigameStatusView statusView;
     private GameSys gameSys;
     private Coroutine gracePeriodCoroutine;
     private bool isMinigameActive;
@@ -58,6 +60,8 @@ public class RedLightMinigameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            selector = new MinigameSelector(minigamePool);
+            statusView = new MinigameStatusView(statusMessageText);
         }
         else
         {
@@ -67,6 +71,10 @@ public class RedLightMinigameManager : MonoBehaviour
 
     private void Start()
     {
+        // Destroy() in Awake is deferred to end of frame, so a doomed duplicate still reaches
+        // Start() — bail before dereferencing collaborators only the real instance built.
+        if (Instance != this) return;
+
         ConnectToGameSys();
         RegisterDefaultMinigames();
         ResetPoolWeights();
@@ -114,11 +122,7 @@ public class RedLightMinigameManager : MonoBehaviour
 
     private void ResetPoolWeights()
     {
-        foreach (var entry in minigamePool)
-        {
-            if (entry != null)
-                entry.currentWeight = InitialWeight;
-        }
+        selector.ResetWeights(InitialWeight);
         Debug.Log($"[RedLightMinigameManager] Minigame pool weights initialized to {InitialWeight} for {minigamePool.Count} entries.");
     }
 
@@ -163,22 +167,6 @@ public class RedLightMinigameManager : MonoBehaviour
         }
     }
 
-    private List<IMovable> GetCurrentViolators()
-    {
-        List<IMovable> violators = new List<IMovable>();
-        if (gameSys == null) return violators;
-
-        float threshold = gameSys.GetSpeedThreshold();
-        foreach (var mb in FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
-        {
-            if (mb is IMovable mover && mover.GetCurrentSpeed() > threshold)
-            {
-                violators.Add(mover);
-            }
-        }
-        return violators;
-    }
-
     private void LaunchMinigameSequence()
     {
         StartCoroutine(LaunchMinigameSequenceCoroutine());
@@ -192,7 +180,7 @@ public class RedLightMinigameManager : MonoBehaviour
         }
 
         // Step 1: Select weighted random minigame
-        Minigame selectedMinigame = PickWeightedMinigame();
+        Minigame selectedMinigame = selector.Pick(SelectedWeightDrop, WeightRecoveryPerRound, MaxWeight);
 
         if (selectedMinigame == null)
         {
@@ -216,64 +204,6 @@ public class RedLightMinigameManager : MonoBehaviour
         }
     }
 
-    private Minigame PickWeightedMinigame()
-    {
-        if (minigamePool == null || minigamePool.Count == 0) return null;
-
-        // Calculate total weight
-        float totalWeight = 0f;
-        foreach (var entry in minigamePool)
-        {
-            if (entry.minigame != null)
-                totalWeight += entry.currentWeight;
-        }
-
-        if (totalWeight <= 0f) return minigamePool[0].minigame;
-
-        // Pick random roll
-        float roll = UnityEngine.Random.Range(0f, totalWeight);
-        float currentSum = 0f;
-        Minigame selected = null;
-        MinigameWeightEntry selectedEntry = null;
-
-        foreach (var entry in minigamePool)
-        {
-            if (entry.minigame == null) continue;
-
-            currentSum += entry.currentWeight;
-            if (roll <= currentSum)
-            {
-                selected = entry.minigame;
-                selectedEntry = entry;
-                break;
-            }
-        }
-
-        if (selected == null && minigamePool.Count > 0)
-        {
-            selected = minigamePool[0].minigame;
-            selectedEntry = minigamePool[0];
-        }
-
-        // Apply continuous weight updates
-        foreach (var entry in minigamePool)
-        {
-            if (entry == selectedEntry)
-            {
-                // Drop selected minigame weight
-                entry.currentWeight = SelectedWeightDrop;
-            }
-            else
-            {
-                // Incremental recovery for unselected minigames (+0.25 up to max 1.0)
-                entry.currentWeight = Mathf.Min(MaxWeight, entry.currentWeight + WeightRecoveryPerRound);
-            }
-            Debug.Log($"[RedLightMinigameManager] Weight table -> {entry.minigame.name}: {entry.currentWeight:F2}");
-        }
-
-        return selected;
-    }
-
     private void HandleRaceEnded()
     {
         MinigameManager.Instance?.ForceCloseMinigame();
@@ -285,7 +215,7 @@ public class RedLightMinigameManager : MonoBehaviour
         }
 
         isMinigameActive = false;
-        HideStatusMessage();
+        statusView.Hide();
     }
 
     private void HandleMinigameCompleted()
@@ -296,7 +226,7 @@ public class RedLightMinigameManager : MonoBehaviour
             StopCoroutine(gracePeriodCoroutine);
             gracePeriodCoroutine = null;
         }
-        HideStatusMessage();
+        statusView.Hide();
     }
 
     private void HandleGreenLightStarted(float duration)
@@ -323,11 +253,11 @@ public class RedLightMinigameManager : MonoBehaviour
         {
             Debug.Log("[RedLightMinigameManager] Grace period expired! Displaying 'Better luck next time!' and closing minigame.");
             
-            ShowStatusMessage(GraceExpiredMessage);
+            statusView.Show(GraceExpiredMessage);
 
             yield return new WaitForSeconds(0.8f);
 
-            HideStatusMessage();
+            statusView.Hide();
             isMinigameActive = false;
 
             if (MinigameManager.Instance != null)
@@ -341,22 +271,5 @@ public class RedLightMinigameManager : MonoBehaviour
         }
 
         gracePeriodCoroutine = null;
-    }
-
-    private void ShowStatusMessage(string msg)
-    {
-        if (statusMessageText != null)
-        {
-            statusMessageText.text = msg;
-            statusMessageText.gameObject.SetActive(true);
-        }
-    }
-
-    private void HideStatusMessage()
-    {
-        if (statusMessageText != null)
-        {
-            statusMessageText.gameObject.SetActive(false);
-        }
     }
 }
