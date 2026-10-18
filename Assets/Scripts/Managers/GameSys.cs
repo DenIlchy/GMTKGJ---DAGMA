@@ -144,6 +144,11 @@ public class GameSys : MonoBehaviour
         registry.Register(mover);
     }
 
+    public IMovable GetPlayerMover()
+    {
+        return registry.FindPlayer();
+    }
+
     public void UnregisterMover(IMovable mover)
     {
         registry.Unregister(mover);

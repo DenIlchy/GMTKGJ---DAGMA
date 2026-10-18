@@ -48,6 +48,12 @@ public class RedLightMinigameManager : MonoBehaviour
 
     private MinigameSelector selector;
     private MinigameStatusView statusView;
+    // Runtime pool: resolved per-character, or the serialized minigamePool list. Never written
+    // back into the serialized field — it is read-only authored input after Awake.
+    private List<MinigameWeightEntry> activePool;
+    private bool poolResolvedSuccessfully;
+    private bool notReadyWarned;
+    private bool poolDiagnosticsReported;
     private GameSys gameSys;
     private Coroutine gracePeriodCoroutine;
     private bool isMinigameActive;
@@ -60,7 +66,8 @@ public class RedLightMinigameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            selector = new MinigameSelector(minigamePool);
+            activePool = minigamePool;
+            selector = new MinigameSelector(activePool);
             statusView = new MinigameStatusView(statusMessageText);
         }
         else
@@ -123,7 +130,7 @@ public class RedLightMinigameManager : MonoBehaviour
     private void ResetPoolWeights()
     {
         selector.ResetWeights(InitialWeight);
-        Debug.Log($"[RedLightMinigameManager] Minigame pool weights initialized to {InitialWeight} for {minigamePool.Count} entries.");
+        Debug.Log($"[RedLightMinigameManager] Minigame pool weights initialized to {InitialWeight} for {activePool.Count} entries.");
     }
 
     private void RegisterDefaultMinigames()
@@ -139,6 +146,8 @@ public class RedLightMinigameManager : MonoBehaviour
 
     private void HandleRedLightStarted(float duration)
     {
+        ResolvePool();
+
         // Subscribe to minigame completion
         if (MinigameManager.Instance != null)
         {
@@ -165,6 +174,107 @@ public class RedLightMinigameManager : MonoBehaviour
             }
             LaunchMinigameSequence();
         }
+    }
+
+    // Resolves the player's per-character minigame pool on first use (not in Start: the player
+    // may not have registered yet and the canvas may activate late). Retrying on failure is
+    // deliberate — Phase 3 spawns/activates characters at runtime, possibly after the first red
+    // light. Retries are cheap: the GetComponentsInChildren walk only runs once a
+    // CharacterMinigames component is found.
+    //
+    // Two independent log latches, because the two failure kinds mean different things.
+    // "Not ready yet" is expected transiently and is latched on its own; the id-join
+    // diagnostics are authoring mistakes the user must see. Sharing one latch would let a
+    // transient not-ready warning permanently mask a real "this id matches nothing" error.
+    private void ResolvePool()
+    {
+        if (poolResolvedSuccessfully)
+            return;
+
+        Transform playerTransform = GameSys.Instance?.GetPlayerMover()?.MoverTransform;
+        if (playerTransform == null)
+        {
+            WarnNotReadyOnce("[RedLightMinigameManager] No player mover registered yet — will retry; using the serialized minigame pool meanwhile.");
+            return;
+        }
+
+        CharacterMinigames characterMinigames = playerTransform.GetComponent<CharacterMinigames>();
+        if (characterMinigames == null || characterMinigames.Pool == null)
+        {
+            WarnNotReadyOnce($"[RedLightMinigameManager] '{playerTransform.name}' is missing {(characterMinigames == null ? "a CharacterMinigames component" : "its pool asset")} — will retry; using the serialized minigame pool meanwhile.");
+            return;
+        }
+
+        // We got far enough to inspect the authored pool, so report join problems — once.
+        bool report = !poolDiagnosticsReported;
+        poolDiagnosticsReported = true;
+
+        // includeInactive: the minigames sit deactivated under the canvas until shown.
+        Minigame[] minigames = playerTransform.GetComponentsInChildren<Minigame>(true);
+        var byId = new Dictionary<string, Minigame>();
+        foreach (var mg in minigames)
+        {
+            if (mg == null) continue;
+            if (byId.ContainsKey(mg.MinigameId))
+            {
+                if (report)
+                    Debug.LogError($"[RedLightMinigameManager] Duplicate MinigameId '{mg.MinigameId}' under '{playerTransform.name}' — pool join is ambiguous.");
+            }
+            else
+            {
+                byId[mg.MinigameId] = mg;
+            }
+        }
+
+        var resolved = new List<MinigameWeightEntry>();
+        var matched = new HashSet<string>();
+        foreach (var entry in characterMinigames.Pool.Entries)
+        {
+            if (entry == null || string.IsNullOrEmpty(entry.minigameId)) continue;
+            if (byId.TryGetValue(entry.minigameId, out Minigame mg))
+            {
+                resolved.Add(new MinigameWeightEntry { minigame = mg, currentWeight = entry.baseWeight });
+                matched.Add(entry.minigameId);
+            }
+            else if (report)
+            {
+                Debug.LogError($"[RedLightMinigameManager] Pool entry '{entry.minigameId}' matches no minigame under '{playerTransform.name}'.");
+            }
+        }
+        if (report)
+        {
+            foreach (var kvp in byId)
+            {
+                if (!matched.Contains(kvp.Key))
+                    Debug.LogWarning($"[RedLightMinigameManager] Minigame '{kvp.Key}' under '{playerTransform.name}' has no pool entry — it will never be selected.");
+            }
+        }
+
+        if (resolved.Count == 0)
+        {
+            if (report)
+                Debug.LogWarning($"[RedLightMinigameManager] Pool on '{playerTransform.name}' matched zero minigames — will retry; using the serialized minigame pool meanwhile.");
+            return;
+        }
+
+        // The resolved entries carry their own authored baseWeight, so InitialWeight is NOT
+        // applied to them — it only resets the legacy serialized list in ResetPoolWeights.
+        // The serialized minigamePool field is deliberately left untouched (read-only input).
+        poolResolvedSuccessfully = true;
+        activePool = resolved;
+        selector = new MinigameSelector(activePool);
+        Debug.Log($"[RedLightMinigameManager] Resolved {resolved.Count} minigame(s) from '{playerTransform.name}'s character pool.");
+    }
+
+    // "Not ready yet" is latched separately from the join diagnostics so that retrying every
+    // red light does not spam the console, while still never masking an authoring error.
+    private void WarnNotReadyOnce(string message)
+    {
+        if (notReadyWarned)
+            return;
+        notReadyWarned = true;
+
+        Debug.LogWarning(message);
     }
 
     private void LaunchMinigameSequence()

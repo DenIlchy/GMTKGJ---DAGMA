@@ -6,6 +6,11 @@ using UnityEngine;
 /// </summary>
 public abstract class Minigame : MonoBehaviour
 {
+    [Tooltip("Stable id matched against the character's CharacterMinigamePool entries. Leave empty to use the GameObject name; set it only to decouple the id from a rename.")]
+    [SerializeField] private string minigameId;
+
+    public string MinigameId => string.IsNullOrWhiteSpace(minigameId) ? gameObject.name : minigameId;
+
     public event Action OnMinigameCompleted;
     public event Action OnMinigameFailed;
 

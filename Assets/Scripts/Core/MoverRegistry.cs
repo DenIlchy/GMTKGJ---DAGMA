@@ -24,6 +24,16 @@ public class MoverRegistry
         return movers.Remove(mover);
     }
 
+    public IMovable FindPlayer()
+    {
+        foreach (var mover in movers)
+        {
+            if (mover != null && mover.IsPlayer)
+                return mover;
+        }
+        return null;
+    }
+
     public void Clear()
     {
         movers.Clear();
