@@ -40,6 +40,7 @@ public class RedLightMinigameManager : MonoBehaviour
 
     private float SelectedWeightDrop => poolConfig != null ? poolConfig.SelectedWeightDrop : selectedWeightDrop;
     private float WeightRecoveryPerRound => poolConfig != null ? poolConfig.WeightRecoveryPerRound : weightRecoveryPerRound;
+    private float InitialWeight => poolConfig != null ? poolConfig.InitialWeight : 1.0f;
     private float MaxWeight => poolConfig != null ? poolConfig.MaxWeight : 1.0f;
     private float PreTransitionDelay => poolConfig != null ? poolConfig.PreTransitionDelay : preTransitionDelay;
     private float GracePeriodDuration => poolConfig != null ? poolConfig.GracePeriodDuration : gracePeriodDuration;
@@ -68,6 +69,7 @@ public class RedLightMinigameManager : MonoBehaviour
     {
         ConnectToGameSys();
         RegisterDefaultMinigames();
+        ResetPoolWeights();
     }
 
     private void ConnectToGameSys()
@@ -106,6 +108,16 @@ public class RedLightMinigameManager : MonoBehaviour
         {
             pendingViolators.Clear();
         }
+    }
+
+    private void ResetPoolWeights()
+    {
+        foreach (var entry in minigamePool)
+        {
+            if (entry != null)
+                entry.currentWeight = InitialWeight;
+        }
+        Debug.Log($"[RedLightMinigameManager] Minigame pool weights initialized to {InitialWeight} for {minigamePool.Count} entries.");
     }
 
     private void RegisterDefaultMinigames()

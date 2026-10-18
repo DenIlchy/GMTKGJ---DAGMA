@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectedWeightDrop: 0.2
   weightRecoveryPerRound: 0.25
+  initialWeight: 1
   maxWeight: 1
   preTransitionDelay: 0
   gracePeriodDuration: 2
