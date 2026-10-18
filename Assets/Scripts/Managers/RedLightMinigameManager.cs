@@ -120,13 +120,19 @@ public class RedLightMinigameManager : MonoBehaviour
         List<IMovable> violators = new List<IMovable>(pendingViolators);
         pendingViolators.Clear();
 
+        float pushBackDist = gameSys != null ? gameSys.GetPushBackDistance() : 2.0f;
         if (DAGMAPenaltyController.Instance != null)
         {
-            float pushBackDist = gameSys != null ? gameSys.GetPushBackDistance() : 2.0f;
             DAGMAPenaltyController.Instance.ExecutePenaltySequence(violators, pushBackDist, LaunchMinigameSequence);
         }
         else
         {
+            Debug.Log("[RedLightMinigameManager] DAGMAPenaltyController missing — applying pushback directly before minigame.");
+            foreach (var violator in violators)
+            {
+                if (violator == null) continue;
+                violator.PushBack(pushBackDist);
+            }
             LaunchMinigameSequence();
         }
     }

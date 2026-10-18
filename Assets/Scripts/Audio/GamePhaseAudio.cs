@@ -30,6 +30,7 @@ public class GamePhaseAudio : MonoBehaviour
 
     private GameSys gameSys;
     private bool greenLoopIsPlaying;
+    private bool loggedMissingGameSys;
 
     private void Awake()
     {
@@ -41,6 +42,7 @@ public class GamePhaseAudio : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void Start()
@@ -61,22 +63,14 @@ public class GamePhaseAudio : MonoBehaviour
         SubscribeToGameSys();
     }
 
-    private void OnEnable()
-    {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    private void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
     private void OnDestroy()
     {
         if (Instance == this)
+        {
             Instance = null;
-
-        UnsubscribeFromGameSys();
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            UnsubscribeFromGameSys();
+        }
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -91,12 +85,14 @@ public class GamePhaseAudio : MonoBehaviour
         gameSys = GameSys.Instance;
         if (gameSys == null)
         {
-            Debug.LogWarning("GamePhaseAudio: no GameSys instance found in the scene.");
-            enabled = false;
+            if (!loggedMissingGameSys)
+            {
+                loggedMissingGameSys = true;
+                Debug.LogWarning("[GamePhaseAudio] No GameSys instance found in the scene; phase audio is idle until one is present.");
+            }
             return;
         }
 
-        enabled = true;
         gameSys.OnGreenLightStarted += HandleGreenLightStarted;
         gameSys.OnRedLightWarningStarted += HandleRedLightWarningStarted;
         gameSys.OnStateChanged += HandleStateChanged;

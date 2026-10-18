@@ -170,10 +170,6 @@ public class GameSys : MonoBehaviour
                 yield return new WaitForSeconds(penaltyFeedbackDuration);
                 if (gameEnded) yield break;
 
-                foreach (var violator in violators)
-                {
-                    violator.PushBack(pushBackDistance);
-                }
                 OnPenaltyApplied?.Invoke(violators);
             }
 

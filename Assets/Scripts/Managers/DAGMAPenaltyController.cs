@@ -66,6 +66,8 @@ public class DAGMAPenaltyController : MonoBehaviour
         {
             if (violator == null) continue;
 
+            violator.PushBack(pushBackDistance);
+
             // Trigger target stun animation on each violator
             violator.ApplyStunAnimation(stunDelay);
         }
