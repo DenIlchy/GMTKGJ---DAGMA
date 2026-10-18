@@ -5,11 +5,14 @@ using UnityEngine.UI;
 [RequireComponent(typeof(CapsuleCollider))]
 public class PlayerMovement : MonoBehaviour, IMovable
 {
-    [Header("Input Keys")]
+    [Header("Config (preferred) — overrides all Legacy values below")]
+    [SerializeField] private PlayerMovementConfig movementConfig;
+
+    [Header("Input Keys (Legacy)")]
     [SerializeField] private Key leftKey = Key.Q;
     [SerializeField] private Key rightKey = Key.E;
 
-    [Header("Momentum")]
+    [Header("Momentum (Legacy)")]
     [Tooltip("Speed added per successful alternating tap.")]
     [SerializeField] private float accelerationPerTap = 0.5f;
     [Tooltip("Maximum movement speed.")]
@@ -19,7 +22,7 @@ public class PlayerMovement : MonoBehaviour, IMovable
     [Tooltip("Reduce speed by this amount when the same key is pressed twice.")]
     [SerializeField] private float wrongTapPenalty = 0.5f;
 
-    [Header("Braking (Stopping)")]
+    [Header("Braking (Stopping) (Legacy)")]
     [Tooltip("How fast speed decays when the player intentionally stops tapping.")]
     [SerializeField] private float brakingDeceleration = 15f;
     [Tooltip("Time (in seconds) without input before aggressive braking kicks in.")]
@@ -32,6 +35,7 @@ public class PlayerMovement : MonoBehaviour, IMovable
     [Header("Animation")]
     [Tooltip("Optional Animator reference. Auto-found in children if left unassigned.")]
     [SerializeField] private Animator animator;
+    [Header("Animator Parameter (Legacy)")]
     [Tooltip("Float parameter name in Animator Blend Tree (0.0 = idle/0%, 1.0 = max speed/100%).")]
     [SerializeField] private string speedParamName = "Speed";
 
@@ -42,12 +46,25 @@ public class PlayerMovement : MonoBehaviour, IMovable
     [SerializeField] private AudioClip footstepClip;
     [Tooltip("Optional UI Slider to control footstep volume.")]
     [SerializeField] private Slider footstepVolumeSlider;
+    [Header("Footstep Tuning (Legacy)")]
     [SerializeField] private float footstepPitchVariation = 0.05f;
     [SerializeField] private float minSpeedForFootstep = 0.01f;
 
     [Header("Stun VFX")]
     [Tooltip("Child GameObject above player head enabled during stun (e.g. stars4 visual model).")]
     [SerializeField] private GameObject stunVFXObject;
+
+    private Key LeftKey => movementConfig != null ? movementConfig.LeftKey : leftKey;
+    private Key RightKey => movementConfig != null ? movementConfig.RightKey : rightKey;
+    private float AccelerationPerTap => movementConfig != null ? movementConfig.AccelerationPerTap : accelerationPerTap;
+    private float MaxSpeed => movementConfig != null ? movementConfig.MaxSpeed : maxSpeed;
+    private float Deceleration => movementConfig != null ? movementConfig.Deceleration : deceleration;
+    private float WrongTapPenalty => movementConfig != null ? movementConfig.WrongTapPenalty : wrongTapPenalty;
+    private float BrakingDeceleration => movementConfig != null ? movementConfig.BrakingDeceleration : brakingDeceleration;
+    private float BrakingDelay => movementConfig != null ? movementConfig.BrakingDelay : brakingDelay;
+    private float FootstepPitchVariation => movementConfig != null ? movementConfig.FootstepPitchVariation : footstepPitchVariation;
+    private float MinSpeedForFootstep => movementConfig != null ? movementConfig.MinSpeedForFootstep : minSpeedForFootstep;
+    private string SpeedParamName => movementConfig != null ? movementConfig.SpeedParamName : speedParamName;
 
     private float currentSpeed;
     private Key? lastPressedKey;
@@ -72,7 +89,7 @@ public class PlayerMovement : MonoBehaviour, IMovable
             animator.applyRootMotion = false;
         }
 
-        speedParamHash = Animator.StringToHash(speedParamName);
+        speedParamHash = Animator.StringToHash(SpeedParamName);
     }
 
     private void Start()
@@ -119,7 +136,7 @@ public class PlayerMovement : MonoBehaviour, IMovable
     {
         if (animator != null)
         {
-            float normalizedSpeed = maxSpeed > 0f ? Mathf.Clamp01(currentSpeed / maxSpeed) : 0f;
+            float normalizedSpeed = MaxSpeed > 0f ? Mathf.Clamp01(currentSpeed / MaxSpeed) : 0f;
             animator.SetFloat(speedParamHash, normalizedSpeed);
         }
     }
@@ -129,8 +146,8 @@ public class PlayerMovement : MonoBehaviour, IMovable
         if (Keyboard.current == null)
             return;
 
-        bool leftPressed = Keyboard.current[leftKey].wasPressedThisFrame;
-        bool rightPressed = Keyboard.current[rightKey].wasPressedThisFrame;
+        bool leftPressed = Keyboard.current[LeftKey].wasPressedThisFrame;
+        bool rightPressed = Keyboard.current[RightKey].wasPressedThisFrame;
 
         // Register ANY tap activity to reset the braking timer
         if (leftPressed || rightPressed)
@@ -143,25 +160,25 @@ public class PlayerMovement : MonoBehaviour, IMovable
 
         if (leftPressed)
         {
-            if (lastPressedKey == leftKey)
+            if (lastPressedKey == LeftKey)
             {
-                currentSpeed = Mathf.Max(0f, currentSpeed - wrongTapPenalty);
+                currentSpeed = Mathf.Max(0f, currentSpeed - WrongTapPenalty);
             }
             else
             {
-                lastPressedKey = leftKey;
+                lastPressedKey = LeftKey;
                 AddMomentum();
             }
         }
         else if (rightPressed)
         {
-            if (lastPressedKey == rightKey)
+            if (lastPressedKey == RightKey)
             {
-                currentSpeed = Mathf.Max(0f, currentSpeed - wrongTapPenalty);
+                currentSpeed = Mathf.Max(0f, currentSpeed - WrongTapPenalty);
             }
             else
             {
-                lastPressedKey = rightKey;
+                lastPressedKey = RightKey;
                 AddMomentum();
             }
         }
@@ -169,8 +186,8 @@ public class PlayerMovement : MonoBehaviour, IMovable
 
     private void AddMomentum()
     {
-        currentSpeed += accelerationPerTap;
-        currentSpeed = Mathf.Clamp(currentSpeed, 0f, maxSpeed);
+        currentSpeed += AccelerationPerTap;
+        currentSpeed = Mathf.Clamp(currentSpeed, 0f, MaxSpeed);
         PlayFootstep();
     }
 
@@ -197,10 +214,10 @@ public class PlayerMovement : MonoBehaviour, IMovable
     {
         if (footstepSource == null || footstepClip == null)
             return;
-        if (currentSpeed < minSpeedForFootstep)
+        if (currentSpeed < MinSpeedForFootstep)
             return;
 
-        footstepSource.pitch = Random.Range(1f - footstepPitchVariation, 1f + footstepPitchVariation);
+        footstepSource.pitch = Random.Range(1f - FootstepPitchVariation, 1f + FootstepPitchVariation);
         footstepSource.PlayOneShot(footstepClip);
     }
 
@@ -217,7 +234,7 @@ public class PlayerMovement : MonoBehaviour, IMovable
     {
         // If the player hasn't tapped anything recently, apply the hard brake.
         // Otherwise, apply the normal running deceleration.
-        float activeDeceleration = (Time.time - lastTapTime > brakingDelay) ? brakingDeceleration : deceleration;
+        float activeDeceleration = (Time.time - lastTapTime > BrakingDelay) ? BrakingDeceleration : Deceleration;
 
         currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, activeDeceleration * Time.deltaTime);
     }
@@ -226,12 +243,12 @@ public class PlayerMovement : MonoBehaviour, IMovable
     {
         if (speedScrollbar != null)
         {
-            speedScrollbar.size = currentSpeed / maxSpeed;
+            speedScrollbar.size = currentSpeed / MaxSpeed;
         }
     }
 
     public float GetCurrentSpeed() => currentSpeed;
-    public float GetMaxSpeed() => maxSpeed;
+    public float GetMaxSpeed() => MaxSpeed;
 
     public bool IsPlayer => true;
     public Transform MoverTransform => transform;

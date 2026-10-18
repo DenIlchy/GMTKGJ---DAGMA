@@ -13,25 +13,37 @@ public class MinigameWeightEntry
 
 public class RedLightMinigameManager : MonoBehaviour
 {
+    [Header("Config (preferred) — overrides all Legacy values below")]
+    [SerializeField] private MinigamePoolConfig poolConfig;
+    [SerializeField] private UIThemeConfig theme;
+
     [Header("Minigame Pool Configuration")]
     [Tooltip("List of minigames managed during Red Light cycles.")]
     [SerializeField] private List<MinigameWeightEntry> minigamePool = new List<MinigameWeightEntry>();
 
-    [Header("Continuous Weight Parameters")]
+    [Header("Continuous Weight Parameters (Legacy)")]
     [Tooltip("Weight assigned to a minigame right after it has been played.")]
     [SerializeField] private float selectedWeightDrop = 0.1f;
     [Tooltip("Weight recovered by unselected minigames per Red Light round.")]
     [SerializeField] private float weightRecoveryPerRound = 0.25f;
 
-    [Header("Pre-Transition Delay")]
+    [Header("Pre-Transition Delay (Legacy)")]
     [Tooltip("Public delay before starting the minigame camera arc sweep transition (editable in Inspector for balance).")]
     public float preTransitionDelay = 0.0f;
 
-    [Header("Green Light Grace Period Settings")]
+    [Header("Grace Period Duration (Legacy)")]
     [Tooltip("Grace period duration in seconds when Green Light starts before the minigame is auto-closed.")]
     public float gracePeriodDuration = 2.0f;
+    [Header("Green Light Grace Period Settings")]
     [Tooltip("Optional text display for status messages (e.g. 'Better luck next time!').")]
     [SerializeField] private TextMeshProUGUI statusMessageText;
+
+    private float SelectedWeightDrop => poolConfig != null ? poolConfig.SelectedWeightDrop : selectedWeightDrop;
+    private float WeightRecoveryPerRound => poolConfig != null ? poolConfig.WeightRecoveryPerRound : weightRecoveryPerRound;
+    private float MaxWeight => poolConfig != null ? poolConfig.MaxWeight : 1.0f;
+    private float PreTransitionDelay => poolConfig != null ? poolConfig.PreTransitionDelay : preTransitionDelay;
+    private float GracePeriodDuration => poolConfig != null ? poolConfig.GracePeriodDuration : gracePeriodDuration;
+    private string GraceExpiredMessage => theme != null ? theme.GraceExpiredMessage : "Better luck next time!";
 
     private GameSys gameSys;
     private Coroutine gracePeriodCoroutine;
@@ -160,9 +172,9 @@ public class RedLightMinigameManager : MonoBehaviour
 
     private IEnumerator LaunchMinigameSequenceCoroutine()
     {
-        if (preTransitionDelay > 0f)
+        if (PreTransitionDelay > 0f)
         {
-            yield return new WaitForSeconds(preTransitionDelay);
+            yield return new WaitForSeconds(PreTransitionDelay);
         }
 
         // Step 1: Select weighted random minigame
@@ -235,12 +247,12 @@ public class RedLightMinigameManager : MonoBehaviour
             if (entry == selectedEntry)
             {
                 // Drop selected minigame weight
-                entry.currentWeight = selectedWeightDrop;
+                entry.currentWeight = SelectedWeightDrop;
             }
             else
             {
                 // Incremental recovery for unselected minigames (+0.25 up to max 1.0)
-                entry.currentWeight = Mathf.Min(1.0f, entry.currentWeight + weightRecoveryPerRound);
+                entry.currentWeight = Mathf.Min(MaxWeight, entry.currentWeight + WeightRecoveryPerRound);
             }
             Debug.Log($"[RedLightMinigameManager] Weight table -> {entry.minigame.name}: {entry.currentWeight:F2}");
         }
@@ -275,15 +287,15 @@ public class RedLightMinigameManager : MonoBehaviour
 
     private IEnumerator GreenLightGracePeriodRoutine()
     {
-        Debug.Log($"[RedLightMinigameManager] Green Light started while in minigame! Grace period of {gracePeriodDuration}s active...");
+        Debug.Log($"[RedLightMinigameManager] Green Light started while in minigame! Grace period of {GracePeriodDuration}s active...");
         
-        yield return new WaitForSeconds(gracePeriodDuration);
+        yield return new WaitForSeconds(GracePeriodDuration);
 
         if (isMinigameActive)
         {
             Debug.Log("[RedLightMinigameManager] Grace period expired! Displaying 'Better luck next time!' and closing minigame.");
             
-            ShowStatusMessage("Better luck next time!");
+            ShowStatusMessage(GraceExpiredMessage);
 
             yield return new WaitForSeconds(0.8f);
 

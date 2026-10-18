@@ -3,17 +3,27 @@ using UnityEngine;
 
 public class OpponentMovement : MonoBehaviour, IMovable
 {
-    [Header("Momentum")]
+    [Header("Config (preferred) — overrides all Legacy values below")]
+    [SerializeField] private OpponentProfileConfig profile;
+
+    [Header("Momentum (Legacy)")]
     [SerializeField] private float accelerationPerStep = 3f;
     [SerializeField] private float maxSpeed = 15f;
     [SerializeField] private float deceleration = 4f;
 
-    [Header("Step Rhythm")]
+    [Header("Step Rhythm (Legacy)")]
     [SerializeField] private Vector2 stepIntervalRange = new Vector2(0.2f, 0.5f);
 
-    [Header("Warning Risk")]
+    [Header("Warning Risk (Legacy)")]
     [SerializeField] [Range(0f, 1f)] private float riskyWarningStepChance = 0.25f;
     [SerializeField] private Vector2 warningReactionDelayRange = new Vector2(0.1f, 0.6f);
+
+    private float AccelerationPerStep => profile != null ? profile.AccelerationPerStep : accelerationPerStep;
+    private float MaxSpeed => profile != null ? profile.MaxSpeed : maxSpeed;
+    private float Deceleration => profile != null ? profile.Deceleration : deceleration;
+    private Vector2 StepIntervalRange => profile != null ? profile.StepIntervalRange : stepIntervalRange;
+    private float RiskyWarningStepChance => profile != null ? profile.RiskyWarningStepChance : riskyWarningStepChance;
+    private Vector2 WarningReactionDelayRange => profile != null ? profile.WarningReactionDelayRange : warningReactionDelayRange;
 
     private float currentSpeed;
     private bool movementBlocked;
@@ -66,7 +76,7 @@ public class OpponentMovement : MonoBehaviour, IMovable
         var anim = GetComponentInChildren<Animator>();
         if (anim != null)
         {
-            float normalizedSpeed = maxSpeed > 0f ? Mathf.Clamp01(currentSpeed / maxSpeed) : 0f;
+            float normalizedSpeed = MaxSpeed > 0f ? Mathf.Clamp01(currentSpeed / MaxSpeed) : 0f;
             anim.SetFloat("Speed", normalizedSpeed);
         }
     }
@@ -97,7 +107,7 @@ public class OpponentMovement : MonoBehaviour, IMovable
                 break;
             case GameState.RedLightWarning:
                 canStep = false;
-                if (!movementBlocked && Random.value <= riskyWarningStepChance)
+                if (!movementBlocked && Random.value <= RiskyWarningStepChance)
                     warningRiskCoroutine = StartCoroutine(TakeRiskyWarningStep());
                 break;
             default:
@@ -108,7 +118,7 @@ public class OpponentMovement : MonoBehaviour, IMovable
 
     private IEnumerator TakeRiskyWarningStep()
     {
-        yield return new WaitForSeconds(GetRandomRangeValue(warningReactionDelayRange));
+        yield return new WaitForSeconds(GetRandomRangeValue(WarningReactionDelayRange));
 
         if (!movementBlocked && gameSys != null && gameSys.CurrentState == GameState.RedLightWarning)
             TakeStep();
@@ -119,7 +129,7 @@ public class OpponentMovement : MonoBehaviour, IMovable
     private void TakeStep()
     {
         nextStepIsLeft = !nextStepIsLeft;
-        currentSpeed = Mathf.Clamp(currentSpeed + accelerationPerStep, 0f, maxSpeed);
+        currentSpeed = Mathf.Clamp(currentSpeed + AccelerationPerStep, 0f, MaxSpeed);
 
         if (canStep)
             ScheduleNextStep();
@@ -127,7 +137,7 @@ public class OpponentMovement : MonoBehaviour, IMovable
 
     private void ScheduleNextStep()
     {
-        nextStepTime = Time.time + GetRandomRangeValue(stepIntervalRange);
+        nextStepTime = Time.time + GetRandomRangeValue(StepIntervalRange);
     }
 
     private void MoveForward()
@@ -137,7 +147,7 @@ public class OpponentMovement : MonoBehaviour, IMovable
 
     private void ApplyDeceleration()
     {
-        currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, deceleration * Time.deltaTime);
+        currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, Deceleration * Time.deltaTime);
     }
 
     private void CancelWarningRisk()

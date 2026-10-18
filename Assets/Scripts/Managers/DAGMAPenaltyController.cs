@@ -6,12 +6,18 @@ using UnityEngine.Events;
 
 public class DAGMAPenaltyController : MonoBehaviour
 {
-    [Header("Penalty Settings")]
+    [Header("Config (preferred) — overrides all Legacy values below")]
+    [SerializeField] private PenaltyConfig penaltyConfig;
+
+    [Header("Penalty Settings (Legacy)")]
     [Tooltip("Duration of the target stun animation & minigame delay in seconds (editable in Inspector for balance).")]
     public float stunDelay = 2.0f;
 
     [Tooltip("Simulated shoot animation duration before impact event fires.")]
     public float shootAnimationDuration = 0.3f;
+
+    private float StunDelay => penaltyConfig != null ? penaltyConfig.StunDelay : stunDelay;
+    private float ShootAnimationDuration => penaltyConfig != null ? penaltyConfig.ShootAnimationDuration : shootAnimationDuration;
 
     [Header("Animation Event Hookup")]
     [Tooltip("UnityEvent triggered when DAGMA shoots. Attach animation events here when new model arrives.")]
@@ -52,13 +58,13 @@ public class DAGMAPenaltyController : MonoBehaviour
         // Step 1: Trigger DAGMA Shoot Animation Event
         OnDAGMAShoot?.Invoke();
 
-        if (shootAnimationDuration > 0f)
+        if (ShootAnimationDuration > 0f)
         {
-            yield return new WaitForSeconds(shootAnimationDuration);
+            yield return new WaitForSeconds(ShootAnimationDuration);
         }
 
         // Step 2: Impact -> Apply Pushback & Stun Animation to all violators
-        Debug.Log($"[DAGMAPenaltyController] DAGMA SHOOTS! Applying pushback ({pushBackDistance}m) and stun animation ({stunDelay}s)...");
+        Debug.Log($"[DAGMAPenaltyController] DAGMA SHOOTS! Applying pushback ({pushBackDistance}m) and stun animation ({StunDelay}s)...");
 
         bool playerIsViolator = System.Linq.Enumerable.Any(violators, v => v != null && v.IsPlayer);
 
@@ -69,14 +75,14 @@ public class DAGMAPenaltyController : MonoBehaviour
             violator.PushBack(pushBackDistance);
 
             // Trigger target stun animation on each violator
-            violator.ApplyStunAnimation(stunDelay);
+            violator.ApplyStunAnimation(StunDelay);
         }
 
         // Step 3: Wait for stun animation delay before proceeding ONLY IF local player violated
-        if (playerIsViolator && stunDelay > 0f)
+        if (playerIsViolator && StunDelay > 0f)
         {
-            Debug.Log($"[DAGMAPenaltyController] Player violated! Delaying minigame opening by player stun delay ({stunDelay}s)...");
-            yield return new WaitForSeconds(stunDelay);
+            Debug.Log($"[DAGMAPenaltyController] Player violated! Delaying minigame opening by player stun delay ({StunDelay}s)...");
+            yield return new WaitForSeconds(StunDelay);
         }
         else
         {

@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 public class GameUI : MonoBehaviour
 {
+    [Header("Config (preferred) — overrides all Legacy values below")]
+    [SerializeField] private UIThemeConfig theme;
+
     [Header("Text References")]
     [Tooltip("Countdown for the current phase (green light / warning).")]
     [SerializeField] private TMP_Text phaseTimerText;
@@ -45,10 +48,22 @@ public class GameUI : MonoBehaviour
     private const string MasterVolumeKey = "MasterVolume";
     private const string SFXVolumeKey = "SFXVolume";
 
-    [Header("Colors")]
+    [Header("Colors (Legacy)")]
     [SerializeField] private Color greenColor = Color.green;
     [SerializeField] private Color warningColor = Color.yellow;
     [SerializeField] private Color redColor = Color.red;
+
+    private Color GreenColor => theme != null ? theme.GreenColor : greenColor;
+    private Color WarningColor => theme != null ? theme.WarningColor : warningColor;
+    private Color RedColor => theme != null ? theme.RedColor : redColor;
+    private string IntroLabel => theme != null ? theme.IntroLabel : "Get Ready...";
+    private string GreenLightLabel => theme != null ? theme.GreenLightLabel : "Green Light!";
+    private string WarningLabel => theme != null ? theme.WarningLabel : "Red Light Soon!";
+    private string RedLightLabel => theme != null ? theme.RedLightLabel : "Red Light!";
+    private string VictoryLabel => theme != null ? theme.VictoryLabel : "Victory!";
+    private string GameOverLabel => theme != null ? theme.GameOverLabel : "Game Over";
+    private string WinResultMessage => theme != null ? theme.WinResultMessage : "You Win!";
+    private string LoseResultMessage => theme != null ? theme.LoseResultMessage : "You Lose!";
 
     private GameSys gameSys;
     private bool isPaused;
@@ -122,28 +137,28 @@ public class GameUI : MonoBehaviour
         switch (state)
         {
             case GameState.Intro:
-                stateText.text = "Get Ready...";
+                stateText.text = IntroLabel;
                 stateText.color = Color.white;
                 break;
             case GameState.GreenLight:
-                stateText.text = "Green Light!";
-                stateText.color = greenColor;
+                stateText.text = GreenLightLabel;
+                stateText.color = GreenColor;
                 break;
             case GameState.RedLightWarning:
-                stateText.text = "Red Light Soon!";
-                stateText.color = warningColor;
+                stateText.text = WarningLabel;
+                stateText.color = WarningColor;
                 break;
             case GameState.RedLight:
-                stateText.text = "Red Light!";
-                stateText.color = redColor;
+                stateText.text = RedLightLabel;
+                stateText.color = RedColor;
                 break;
             case GameState.Victory:
-                stateText.text = "Victory!";
-                stateText.color = greenColor;
+                stateText.text = VictoryLabel;
+                stateText.color = GreenColor;
                 break;
             case GameState.GameOver:
-                stateText.text = "Game Over";
-                stateText.color = redColor;
+                stateText.text = GameOverLabel;
+                stateText.color = RedColor;
                 break;
         }
     }
@@ -155,12 +170,12 @@ public class GameUI : MonoBehaviour
 
         if (state == GameState.Victory)
         {
-            ShowResult("You Win!", greenColor, true);
+            ShowResult(WinResultMessage, GreenColor, true);
             resultShown = true;
         }
         else if (state == GameState.GameOver)
         {
-            ShowResult("You Lose!", redColor, false);
+            ShowResult(LoseResultMessage, RedColor, false);
             resultShown = true;
         }
     }

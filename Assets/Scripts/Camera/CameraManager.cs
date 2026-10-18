@@ -5,12 +5,15 @@ using Unity.Cinemachine;
 
 public class CameraManager : MonoBehaviour
 {
+    [Header("Config (preferred) — overrides all Legacy values below")]
+    [SerializeField] private CameraTransitionConfig cameraConfig;
+
     [Header("Virtual Cameras")]
     [SerializeField] private CinemachineCamera gameplayCamera;
     [SerializeField] private CinemachineCamera arcApexCamera;
     [SerializeField] private CinemachineCamera minigameCamera;
 
-    [Header("Waypoint Transition Settings")]
+    [Header("Waypoint Transition Settings (Legacy)")]
     [Tooltip("Duration of each transition leg (Gameplay -> Arc Apex -> Minigame).")]
     [SerializeField] private float stepDuration = 0.4f;
 
@@ -21,13 +24,23 @@ public class CameraManager : MonoBehaviour
     [Tooltip("Enable key presses (1/2) and on-screen UI buttons for testing.")]
     [SerializeField] private bool enableDebugHotkeys = true;
 
+    private float StepDuration => cameraConfig != null ? cameraConfig.StepDuration : stepDuration;
+    private float UIPopupDelay => cameraConfig != null ? cameraConfig.UIPopupDelay : uiPopupDelay;
+    private int GameplayActivePriority => cameraConfig != null ? cameraConfig.GameplayActivePriority : 20;
+    private int GameplayIdlePriority => cameraConfig != null ? cameraConfig.GameplayIdlePriority : 5;
+    private int ApexActivePriority => cameraConfig != null ? cameraConfig.ApexActivePriority : 15;
+    private int ApexIdlePriority => cameraConfig != null ? cameraConfig.ApexIdlePriority : 5;
+    private int MinigameActivePriority => cameraConfig != null ? cameraConfig.MinigameActivePriority : 20;
+    private int MinigameLockedPriority => cameraConfig != null ? cameraConfig.MinigameLockedPriority : 10;
+    private int MinigameIdlePriority => cameraConfig != null ? cameraConfig.MinigameIdlePriority : 5;
+
     private Coroutine transitionCoroutine;
     private CinemachineBrain mainCameraBrain;
 
     public static CameraManager Instance { get; private set; }
 
-    public float GetStepDuration() => stepDuration;
-    public float GetTotalTransitionDuration() => (stepDuration * 2f) + uiPopupDelay;
+    public float GetStepDuration() => StepDuration;
+    public float GetTotalTransitionDuration() => (StepDuration * 2f) + UIPopupDelay;
 
     private void Awake()
     {
@@ -105,7 +118,7 @@ public class CameraManager : MonoBehaviour
             transitionCoroutine = null;
         }
 
-        SetPriorities(gameplayPriority: 20, apexPriority: 5, minigamePriority: 5);
+        SetPriorities(gameplayPriority: GameplayActivePriority, apexPriority: ApexIdlePriority, minigamePriority: MinigameIdlePriority);
     }
 
     /// <summary>
@@ -125,15 +138,15 @@ public class CameraManager : MonoBehaviour
     private IEnumerator ForwardArcWaypointSequence()
     {
         // Step 1: Blend from Gameplay to Arc Apex (Over-The-Shoulder Peak)
-        SetPriorities(gameplayPriority: 5, apexPriority: 15, minigamePriority: 5);
-        yield return new WaitForSeconds(stepDuration);
+        SetPriorities(gameplayPriority: GameplayIdlePriority, apexPriority: ApexActivePriority, minigamePriority: MinigameIdlePriority);
+        yield return new WaitForSeconds(StepDuration);
 
         // Step 2: Blend from Arc Apex to Minigame Close-Up (Front View)
-        SetPriorities(gameplayPriority: 5, apexPriority: 5, minigamePriority: 20);
-        yield return new WaitForSeconds(stepDuration);
+        SetPriorities(gameplayPriority: GameplayIdlePriority, apexPriority: ApexIdlePriority, minigamePriority: MinigameActivePriority);
+        yield return new WaitForSeconds(StepDuration);
 
         // Lock priority on minigame camera cleanly
-        SetPriorities(gameplayPriority: 5, apexPriority: 5, minigamePriority: 10);
+        SetPriorities(gameplayPriority: GameplayIdlePriority, apexPriority: ApexIdlePriority, minigamePriority: MinigameLockedPriority);
 
         // Dynamically wait until CinemachineBrain finishes blending completely
         if (mainCameraBrain != null)
@@ -145,9 +158,9 @@ public class CameraManager : MonoBehaviour
             }
         }
 
-        if (uiPopupDelay > 0f)
+        if (UIPopupDelay > 0f)
         {
-            yield return new WaitForSeconds(uiPopupDelay);
+            yield return new WaitForSeconds(UIPopupDelay);
         }
 
         transitionCoroutine = null;
@@ -162,12 +175,12 @@ public class CameraManager : MonoBehaviour
     private IEnumerator ReverseArcWaypointSequence()
     {
         // Step 1: Blend from Minigame Close-Up back to Arc Apex (Over-The-Shoulder Peak)
-        SetPriorities(gameplayPriority: 5, apexPriority: 15, minigamePriority: 5);
-        yield return new WaitForSeconds(stepDuration);
+        SetPriorities(gameplayPriority: GameplayIdlePriority, apexPriority: ApexActivePriority, minigamePriority: MinigameIdlePriority);
+        yield return new WaitForSeconds(StepDuration);
 
         // Step 2: Blend from Arc Apex back to 3rd-Person Gameplay View
-        SetPriorities(gameplayPriority: 20, apexPriority: 5, minigamePriority: 5);
-        yield return new WaitForSeconds(stepDuration);
+        SetPriorities(gameplayPriority: GameplayActivePriority, apexPriority: ApexIdlePriority, minigamePriority: MinigameIdlePriority);
+        yield return new WaitForSeconds(StepDuration);
 
         // Dynamically wait until CinemachineBrain finishes blending completely
         if (mainCameraBrain != null)

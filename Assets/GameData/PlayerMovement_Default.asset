@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f18a699cf069d9d9a86a06a868a33db, type: 3}
+  m_Name: PlayerMovement_Default
+  m_EditorClassIdentifier: 
+  leftKey: 31
+  rightKey: 19
+  accelerationPerTap: 0.5
+  maxSpeed: 8
+  deceleration: 3
+  wrongTapPenalty: 0.5
+  brakingDeceleration: 6
+  brakingDelay: 0.2
+  footstepPitchVariation: 0.05
+  minSpeedForFootstep: 0.01
+  speedParamName: Speed

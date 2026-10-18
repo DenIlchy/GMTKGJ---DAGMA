@@ -8,15 +8,21 @@ public class WatcherVisuals : MonoBehaviour
     private static readonly int HasViolatorsParam = Animator.StringToHash("HasViolators");
     private static readonly int TargetTypeParam = Animator.StringToHash("TargetType");
 
+    [Header("Config (preferred) — overrides all Legacy values below")]
+    [SerializeField] private UIThemeConfig theme;
+
     [Header("References")]
     [Tooltip("Animator driven by State int (0=green, 1=turn, 3=red), HasViolators bool, and TargetType int (0=none, 1=player, 2=bot).")]
     [SerializeField] private Animator animator;
     [Tooltip("Optional renderer whose material color signals the current state.")]
     [SerializeField] private Renderer signalRenderer;
 
-    [Header("Signal Colors")]
+    [Header("Signal Colors (Legacy)")]
     [SerializeField] private Color greenColor = Color.green;
     [SerializeField] private Color redColor = Color.red;
+
+    private Color GreenColor => theme != null ? theme.GreenColor : greenColor;
+    private Color RedColor => theme != null ? theme.RedColor : redColor;
 
     public static WatcherVisuals Instance { get; private set; }
 
@@ -76,23 +82,23 @@ public class WatcherVisuals : MonoBehaviour
             case GameState.GreenLight:
                 SetState(0);
                 ResetViolatorParameters();
-                SetSignalColor(greenColor);
+                SetSignalColor(GreenColor);
                 break;
 
             case GameState.RedLightWarning:
                 SetState(1); // Triggers Turn animation every round!
                 ResetViolatorParameters();
-                SetSignalColor(redColor);
+                SetSignalColor(RedColor);
                 break;
 
             case GameState.RedLight:
                 SetState(3);
                 ResetViolatorParameters();
-                SetSignalColor(redColor);
+                SetSignalColor(RedColor);
                 break;
 
             case GameState.PenaltyFeedback:
-                SetSignalColor(redColor);
+                SetSignalColor(RedColor);
                 break;
         }
     }

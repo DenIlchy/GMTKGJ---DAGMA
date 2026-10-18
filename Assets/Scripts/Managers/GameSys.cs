@@ -29,7 +29,11 @@ public class GameSys : MonoBehaviour
         private set => _instance = value;
     }
 
-    [Header("Phase Durations")]
+    [Header("Config (preferred) — overrides all Legacy values below")]
+    [SerializeField] private PhaseTimingConfig phaseTiming;
+    [SerializeField] private RaceRulesConfig raceRules;
+
+    [Header("Phase Durations (Legacy)")]
     [Tooltip("Random range (min, max) for the total Green Light duration in seconds.")]
     [SerializeField] private Vector2 greenLightDurationRange = new Vector2(4f, 10f);
     [Tooltip("The last N seconds of the Green Light are the Red Light warning.")]
@@ -40,21 +44,32 @@ public class GameSys : MonoBehaviour
     [Tooltip("How long the 'You moved!' feedback is shown before the penalty is applied.")]
     [SerializeField] private float penaltyFeedbackDuration = 1f;
 
-    [Header("Red Light Timer Adjustment")]
+    [Header("Red Light Timer Adjustment (Legacy)")]
     [Tooltip("Public delay (in seconds) added before the Red Light timer starts counting down on screen. Adjust in Inspector to perfectly match camera transition duration.")]
     public float redLightTimerStartDelay = 0.85f;
 
-    [Header("Level")]
+    [Header("Intro Duration (Legacy)")]
     [Tooltip("Delay before the first Green Light starts (Intro state).")]
     [SerializeField] private float introDuration = 2f;
+    [Header("Level")]
     [Tooltip("Panel shown before the intro. The intro starts only after this panel is deactivated.")]
     [SerializeField] private GameObject startPanel;
 
-    [Header("Penalty")]
+    [Header("Penalty (Legacy)")]
     [Tooltip("Absolute speed above which a mover is considered violating during Red Light.")]
     [SerializeField] private float speedThreshold = 0.5f;
     [Tooltip("Distance a violator is pushed back.")]
     [SerializeField] private float pushBackDistance = 2f;
+
+    private Vector2 GreenLightDurationRange => phaseTiming != null ? phaseTiming.GreenLightDurationRange : greenLightDurationRange;
+    private float WarningDuration => phaseTiming != null ? phaseTiming.WarningDuration : warningDuration;
+    private Vector2 RedLightDurationRange => phaseTiming != null ? phaseTiming.RedLightDurationRange : redLightDurationRange;
+    private Vector2 PostRedLightDelayRange => phaseTiming != null ? phaseTiming.PostRedLightDelayRange : postRedLightDelayRange;
+    private float PenaltyFeedbackDuration => phaseTiming != null ? phaseTiming.PenaltyFeedbackDuration : penaltyFeedbackDuration;
+    private float IntroDuration => phaseTiming != null ? phaseTiming.IntroDuration : introDuration;
+    private float RedLightTimerStartDelay => phaseTiming != null ? phaseTiming.RedLightTimerStartDelay : redLightTimerStartDelay;
+    private float SpeedThreshold => raceRules != null ? raceRules.SpeedThreshold : speedThreshold;
+    private float PushBackDistance => raceRules != null ? raceRules.PushBackDistance : pushBackDistance;
 
     public GameState CurrentState { get; private set; } = GameState.Intro;
     public bool IsWaitingForStartPanel => startPanel != null && startPanel.activeInHierarchy;
@@ -133,33 +148,33 @@ public class GameSys : MonoBehaviour
             yield return null;
 
         SetState(GameState.Intro);
-        yield return RunPhaseTimer(introDuration);
+        yield return RunPhaseTimer(IntroDuration);
 
         while (!gameEnded)
         {
             // --- Green Light ---
             CurrentCycle++;
             Debug.Log($"[GameSys] --- Cycle #{CurrentCycle} Started (Green Light) ---");
-            float greenDuration = UnityEngine.Random.Range(greenLightDurationRange.x, greenLightDurationRange.y);
-            float safeDuration = Mathf.Max(0f, greenDuration - warningDuration);
+            float greenDuration = UnityEngine.Random.Range(GreenLightDurationRange.x, GreenLightDurationRange.y);
+            float safeDuration = Mathf.Max(0f, greenDuration - WarningDuration);
 
             SetState(GameState.GreenLight);
             OnGreenLightStarted?.Invoke(greenDuration);
             SetAllMovementBlocked(false);
-            yield return RunPhaseTimer(safeDuration, warningDuration);
+            yield return RunPhaseTimer(safeDuration, WarningDuration);
             if (gameEnded) yield break;
 
             // --- Red Light Warning (last 3s of green) ---
             SetState(GameState.RedLightWarning);
-            OnRedLightWarningStarted?.Invoke(warningDuration);
-            yield return RunPhaseTimer(warningDuration);
+            OnRedLightWarningStarted?.Invoke(WarningDuration);
+            yield return RunPhaseTimer(WarningDuration);
             if (gameEnded) yield break;
 
             // --- Red Light: timer is out => speed check ---
-            float redDuration = UnityEngine.Random.Range(redLightDurationRange.x, redLightDurationRange.y);
+            float redDuration = UnityEngine.Random.Range(RedLightDurationRange.x, RedLightDurationRange.y);
 
             List<IMovable> violators = movers
-                .Where(m => m != null && m.GetCurrentSpeed() > speedThreshold)
+                .Where(m => m != null && m.GetCurrentSpeed() > SpeedThreshold)
                 .ToList();
 
             // --- Visual feedback, then penalty ---
@@ -167,7 +182,7 @@ public class GameSys : MonoBehaviour
             {
                 SetState(GameState.PenaltyFeedback);
                 OnPenaltyFeedbackStarted?.Invoke(violators);
-                yield return new WaitForSeconds(penaltyFeedbackDuration);
+                yield return new WaitForSeconds(PenaltyFeedbackDuration);
                 if (gameEnded) yield break;
 
                 OnPenaltyApplied?.Invoke(violators);
@@ -182,7 +197,7 @@ public class GameSys : MonoBehaviour
 
             // Delay Red Light timer countdown until camera transition completes
             float cameraTransitionDelay = CameraManager.Instance != null ? CameraManager.Instance.GetTotalTransitionDuration() : 0.85f;
-            float totalTimerDelay = Mathf.Max(cameraTransitionDelay, redLightTimerStartDelay);
+            float totalTimerDelay = Mathf.Max(cameraTransitionDelay, RedLightTimerStartDelay);
 
             if (totalTimerDelay > 0f)
             {
@@ -192,7 +207,7 @@ public class GameSys : MonoBehaviour
             yield return RunPhaseTimer(redDuration);
             if (gameEnded) yield break;
 
-            yield return new WaitForSeconds(UnityEngine.Random.Range(postRedLightDelayRange.x, postRedLightDelayRange.y));
+            yield return new WaitForSeconds(UnityEngine.Random.Range(PostRedLightDelayRange.x, PostRedLightDelayRange.y));
             if (gameEnded) yield break;
         }
     }
@@ -270,6 +285,6 @@ public class GameSys : MonoBehaviour
             startPanel.SetActive(false);
     }
 
-    public float GetSpeedThreshold() => speedThreshold;
-    public float GetPushBackDistance() => pushBackDistance;
+    public float GetSpeedThreshold() => SpeedThreshold;
+    public float GetPushBackDistance() => PushBackDistance;
 }
