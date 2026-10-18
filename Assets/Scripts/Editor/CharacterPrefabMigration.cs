@@ -266,6 +266,18 @@ public static class CharacterPrefabMigration
         }
     }
 
+    // Get-or-add that is safe against Unity's fake-null. GetComponent can return a managed
+    // wrapper whose native object is missing; UnityEngine.Object overloads == to report that as
+    // null, but the ?? and ?. operators bypass the overload and see it as non-null. Using ??
+    // here silently skipped AddComponent and handed back an unusable component.
+    private static T GetOrAdd<T>(GameObject go) where T : Component
+    {
+        T existing = go.GetComponent<T>();
+        if (existing == null)
+            return go.AddComponent<T>();
+        return existing;
+    }
+
     // Throws naming the field and component type instead of letting a renamed field surface
     // as a bare NullReferenceException — these names are coupled to classes being refactored.
     private static SerializedProperty Prop(SerializedObject so, string name)
@@ -305,7 +317,7 @@ public static class CharacterPrefabMigration
 
         // Get-or-add: PlayerMovement's [RequireComponent(typeof(CapsuleCollider))] already
         // auto-added one — a second AddComponent would ship the prefab with two colliders.
-        var capsule = go.GetComponent<CapsuleCollider>() ?? go.AddComponent<CapsuleCollider>();
+        var capsule = GetOrAdd<CapsuleCollider>(go);
         capsule.radius = 2f;
         capsule.height = 5f;
         capsule.direction = 1;
@@ -329,7 +341,7 @@ public static class CharacterPrefabMigration
         Prop(so, "warningReactionDelayRange").vector2Value = new Vector2(0.5f, 1f);
         so.ApplyModifiedPropertiesWithoutUndo();
 
-        var box = go.GetComponent<BoxCollider>() ?? go.AddComponent<BoxCollider>();
+        var box = GetOrAdd<BoxCollider>(go);
         box.size = Vector3.one;
         box.center = Vector3.zero;
         return go;
@@ -346,7 +358,7 @@ public static class CharacterPrefabMigration
 
         // Get-or-add: the imported model root may already carry an Animator depending on
         // import settings (Generic rig) — a second one would be a real duplicate.
-        var animator = instance.GetComponent<Animator>() ?? instance.AddComponent<Animator>();
+        var animator = GetOrAdd<Animator>(instance);
         animator.runtimeAnimatorController = inputs.microwaveController;
         animator.applyRootMotion = false;
         // avatar intentionally left null, matching the original setup on Char.prefab.
