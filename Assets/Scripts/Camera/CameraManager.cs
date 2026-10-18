@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -55,7 +56,7 @@ public class CameraManager : MonoBehaviour
 
     private void Start()
     {
-        mainCameraBrain = Object.FindFirstObjectByType<CinemachineBrain>();
+        mainCameraBrain = UnityEngine.Object.FindFirstObjectByType<CinemachineBrain>();
 
         // Default to 3rd-person gameplay camera view on start
         SwitchToGameplayCameraDirect();
@@ -63,6 +64,10 @@ public class CameraManager : MonoBehaviour
 
     private void Update()
     {
+#if UNITY_EDITOR
+        // Editor-only MinigameManager reference is deliberate for the debug shortcut —
+        // the production API (SwitchToMinigameCamera) is minigame-agnostic.
+        // This debug input moves to its own component in Phase 3's hierarchy rebuild.
         if (enableDebugHotkeys && Keyboard.current != null)
         {
             if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame)
@@ -71,11 +76,13 @@ public class CameraManager : MonoBehaviour
             }
             else if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame)
             {
-                SwitchToMinigameCamera();
+                SwitchToMinigameCamera(() => MinigameManager.Instance?.ShowMinigame());
             }
         }
+#endif
     }
 
+#if UNITY_EDITOR
     private void OnGUI()
     {
         if (!enableDebugHotkeys) return;
@@ -87,10 +94,11 @@ public class CameraManager : MonoBehaviour
         }
         if (GUILayout.Button("2: Minigame View (Arc Sweep)"))
         {
-            SwitchToMinigameCamera();
+            SwitchToMinigameCamera(() => MinigameManager.Instance?.ShowMinigame());
         }
         GUILayout.EndArea();
     }
+#endif
 
     /// <summary>
     /// Switches back to 3rd-person gameplay camera using the reverse arc sweep (Minigame -> Arc Apex -> Gameplay).
@@ -124,17 +132,17 @@ public class CameraManager : MonoBehaviour
     /// Triggers the forward 3-camera waypoint sequence: Gameplay -> Arc Apex -> Minigame Close-Up.
     /// </summary>
     [ContextMenu("Test Minigame Camera (Forward Arc Sweep)")]
-    public void SwitchToMinigameCamera()
+    public void SwitchToMinigameCamera(Action onArrived = null)
     {
         if (transitionCoroutine != null)
         {
             StopCoroutine(transitionCoroutine);
         }
 
-        transitionCoroutine = StartCoroutine(ForwardArcWaypointSequence());
+        transitionCoroutine = StartCoroutine(ForwardArcWaypointSequence(onArrived));
     }
 
-    private IEnumerator ForwardArcWaypointSequence()
+    private IEnumerator ForwardArcWaypointSequence(Action onArrived)
     {
         // Step 1: Blend from Gameplay to Arc Apex (Over-The-Shoulder Peak)
         SetPriorities(gameplayPriority: GameplayIdlePriority, apexPriority: ApexActivePriority, minigamePriority: MinigameIdlePriority);
@@ -164,11 +172,8 @@ public class CameraManager : MonoBehaviour
 
         transitionCoroutine = null;
 
-        // Open the minigame UI popup ONLY after the camera has come to a 100% complete stop!
-        if (MinigameManager.Instance != null)
-        {
-            MinigameManager.Instance.ShowMinigame();
-        }
+        // Fire ONLY after the camera has come to a 100% complete stop!
+        onArrived?.Invoke();
     }
 
     private IEnumerator ReverseArcWaypointSequence()

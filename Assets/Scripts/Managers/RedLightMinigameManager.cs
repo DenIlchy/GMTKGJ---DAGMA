@@ -212,7 +212,7 @@ public class RedLightMinigameManager : MonoBehaviour
         // Step 2: Trigger full 3-point camera arc sweep
         if (CameraManager.Instance != null)
         {
-            CameraManager.Instance.SwitchToMinigameCamera();
+            CameraManager.Instance.SwitchToMinigameCamera(() => MinigameManager.Instance?.ShowMinigame());
         }
     }
 
