@@ -80,6 +80,7 @@ public class RedLightMinigameManager : MonoBehaviour
         gameSys.OnPenaltyFeedbackStarted += HandlePenaltyFeedbackStarted;
         gameSys.OnRedLightStarted += HandleRedLightStarted;
         gameSys.OnGreenLightStarted += HandleGreenLightStarted;
+        gameSys.OnRaceEnded += HandleRaceEnded;
     }
 
     private void OnDestroy()
@@ -89,6 +90,7 @@ public class RedLightMinigameManager : MonoBehaviour
             gameSys.OnPenaltyFeedbackStarted -= HandlePenaltyFeedbackStarted;
             gameSys.OnRedLightStarted -= HandleRedLightStarted;
             gameSys.OnGreenLightStarted -= HandleGreenLightStarted;
+            gameSys.OnRaceEnded -= HandleRaceEnded;
         }
 
         if (MinigameManager.Instance != null)
@@ -270,6 +272,20 @@ public class RedLightMinigameManager : MonoBehaviour
         }
 
         return selected;
+    }
+
+    private void HandleRaceEnded()
+    {
+        MinigameManager.Instance?.ForceCloseMinigame();
+
+        if (gracePeriodCoroutine != null)
+        {
+            StopCoroutine(gracePeriodCoroutine);
+            gracePeriodCoroutine = null;
+        }
+
+        isMinigameActive = false;
+        HideStatusMessage();
     }
 
     private void HandleMinigameCompleted()

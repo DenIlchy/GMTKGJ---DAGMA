@@ -44,7 +44,7 @@ public class GameSys : MonoBehaviour
     [SerializeField] private float penaltyFeedbackDuration = 1f;
 
     [Header("Red Light Timer Adjustment (Legacy)")]
-    [Tooltip("Public delay (in seconds) added before the Red Light timer starts counting down on screen. Adjust in Inspector to perfectly match camera transition duration.")]
+    [Tooltip("Public delay (in seconds) added before the Red Light timer starts counting down on screen. Must be greater than or equal to the camera's total transition duration (stepDuration * 2 + uiPopupDelay on CameraTransitionConfig, currently 0.75s), or the Red Light timer will start counting before the camera has settled.")]
     public float redLightTimerStartDelay = 0.85f;
 
     [Header("Intro Duration (Legacy)")]
@@ -71,7 +71,7 @@ public class GameSys : MonoBehaviour
     private float PushBackDistance => raceRules != null ? raceRules.PushBackDistance : pushBackDistance;
 
     public GameState CurrentState { get; private set; } = GameState.Intro;
-    public bool IsWaitingForStartPanel => startPanel != null && startPanel.activeInHierarchy;
+    public bool IsWaitingForStartPanel => startGate.IsWaiting;
     public int CurrentCycle { get; private set; } = 0;
 
     public event Action<GameState> OnStateChanged;
@@ -82,9 +82,12 @@ public class GameSys : MonoBehaviour
     public event Action<List<IMovable>> OnPenaltyApplied;
     public event Action OnVictory;
     public event Action OnGameOver;
+    public event Action OnRaceEnded;
     public event Action<float> OnPhaseTimerUpdated;
 
     private readonly MoverRegistry registry = new MoverRegistry();
+    private readonly PhaseTimer phaseTimer = new PhaseTimer();
+    private StartGate startGate;
     private bool allMovementBlocked = true;
     private Coroutine gameLoopCoroutine;
     private bool gameEnded;
@@ -92,6 +95,11 @@ public class GameSys : MonoBehaviour
     private void Awake()
     {
         TimeControl.Resume();
+
+        // Built before the duplicate-instance check: Destroy() here is deferred to the end of the
+        // frame, so a doomed duplicate still runs Start() and would dereference a null startGate.
+        startGate = new StartGate(startPanel);
+
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -99,6 +107,7 @@ public class GameSys : MonoBehaviour
         }
         Instance = this;
         registry.OnMoverRegistered += HandleMoverRegistered;
+        phaseTimer.OnTick += t => OnPhaseTimerUpdated?.Invoke(t);
     }
 
     private void OnDestroy()
@@ -109,10 +118,7 @@ public class GameSys : MonoBehaviour
 
     private void Start()
     {
-        if (startPanel == null)
-            Debug.LogWarning("[GameSys] Start Panel is not assigned in the Inspector — the game will start immediately without waiting for it.");
-        else if (!startPanel.activeInHierarchy)
-            Debug.LogWarning("[GameSys] Start Panel is assigned but already inactive at scene start — the game will start immediately. Make sure the panel is active in the scene.");
+        startGate.LogConfigurationWarnings();
 
         gameLoopCoroutine = StartCoroutine(GameLoop());
     }
@@ -141,7 +147,7 @@ public class GameSys : MonoBehaviour
             yield return null;
 
         SetState(GameState.Intro);
-        yield return RunPhaseTimer(IntroDuration);
+        yield return phaseTimer.Run(IntroDuration, 0f, () => gameEnded);
 
         while (!gameEnded)
         {
@@ -154,13 +160,13 @@ public class GameSys : MonoBehaviour
             SetState(GameState.GreenLight);
             OnGreenLightStarted?.Invoke(greenDuration);
             SetAllMovementBlocked(false);
-            yield return RunPhaseTimer(safeDuration, WarningDuration);
+            yield return phaseTimer.Run(safeDuration, WarningDuration, () => gameEnded);
             if (gameEnded) yield break;
 
             // --- Red Light Warning (last 3s of green) ---
             SetState(GameState.RedLightWarning);
             OnRedLightWarningStarted?.Invoke(WarningDuration);
-            yield return RunPhaseTimer(WarningDuration);
+            yield return phaseTimer.Run(WarningDuration, 0f, () => gameEnded);
             if (gameEnded) yield break;
 
             // --- Red Light: timer is out => speed check ---
@@ -186,16 +192,13 @@ public class GameSys : MonoBehaviour
             SetState(GameState.RedLight);
             OnRedLightStarted?.Invoke(redDuration);
 
-            // Delay Red Light timer countdown until camera transition completes
-            float cameraTransitionDelay = CameraManager.Instance != null ? CameraManager.Instance.GetTotalTransitionDuration() : 0.85f;
-            float totalTimerDelay = Mathf.Max(cameraTransitionDelay, RedLightTimerStartDelay);
-
-            if (totalTimerDelay > 0f)
+            // Delay Red Light timer countdown so it does not start before the camera has settled
+            if (RedLightTimerStartDelay > 0f)
             {
-                yield return new WaitForSeconds(totalTimerDelay);
+                yield return new WaitForSeconds(RedLightTimerStartDelay);
             }
 
-            yield return RunPhaseTimer(redDuration);
+            yield return phaseTimer.Run(redDuration, 0f, () => gameEnded);
             if (gameEnded) yield break;
 
             yield return new WaitForSeconds(UnityEngine.Random.Range(PostRedLightDelayRange.x, PostRedLightDelayRange.y));
@@ -210,17 +213,6 @@ public class GameSys : MonoBehaviour
         {
             if (mover != null)
                 mover.SetMovementBlocked(blocked);
-        }
-    }
-
-    private IEnumerator RunPhaseTimer(float duration, float reportOffset = 0f)
-    {
-        float remaining = duration;
-        while (remaining > 0f && !gameEnded)
-        {
-            remaining -= Time.deltaTime;
-            OnPhaseTimerUpdated?.Invoke(Mathf.Max(0f, remaining) + reportOffset);
-            yield return null;
         }
     }
 
@@ -240,10 +232,7 @@ public class GameSys : MonoBehaviour
         gameEnded = true;
         SetAllMovementBlocked(true);
 
-        if (MinigameManager.Instance != null)
-        {
-            MinigameManager.Instance.ForceCloseMinigame();
-        }
+        OnRaceEnded?.Invoke();
 
         if (gameLoopCoroutine != null)
         {
@@ -273,8 +262,7 @@ public class GameSys : MonoBehaviour
 
     public void DismissStartPanel()
     {
-        if (startPanel != null)
-            startPanel.SetActive(false);
+        startGate.Dismiss();
     }
 
     public float GetSpeedThreshold() => SpeedThreshold;

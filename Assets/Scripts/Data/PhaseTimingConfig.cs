@@ -14,7 +14,7 @@ public class PhaseTimingConfig : ScriptableObject
     [SerializeField] private float penaltyFeedbackDuration = 1f;
     [Tooltip("Delay before the first Green Light starts (Intro state).")]
     [SerializeField] private float introDuration = 2f;
-    [Tooltip("Public delay (in seconds) added before the Red Light timer starts counting down on screen. Adjust in Inspector to perfectly match camera transition duration.")]
+    [Tooltip("Public delay (in seconds) added before the Red Light timer starts counting down on screen. Must be greater than or equal to the camera's total transition duration (stepDuration * 2 + uiPopupDelay on CameraTransitionConfig, currently 0.75s), or the Red Light timer will start counting before the camera has settled.")]
     [SerializeField] private float redLightTimerStartDelay = 1.7f;
 
     public Vector2 GreenLightDurationRange => greenLightDurationRange;
