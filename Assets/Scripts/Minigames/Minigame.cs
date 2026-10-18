@@ -24,6 +24,28 @@ public abstract class Minigame : MonoBehaviour
     {
         IsCompleted = false;
         gameObject.SetActive(true);
+
+        // SetActive only touches this object: a disabled ancestor still leaves the whole subtree
+        // inactive. That renders nothing, and anything a subclass instantiates underneath never
+        // receives Awake — which surfaces as a confusing NullReferenceException deep inside the
+        // subclass rather than here. Name the culprit instead.
+        if (!gameObject.activeInHierarchy)
+        {
+            Debug.LogError(
+                $"[Minigame] '{name}' was started but is not active in the hierarchy because " +
+                $"'{FindDisabledAncestorName()}' is disabled. It will not render, and objects " +
+                "instantiated under it will not run Awake.", this);
+        }
+    }
+
+    private string FindDisabledAncestorName()
+    {
+        for (Transform t = transform; t != null; t = t.parent)
+        {
+            if (!t.gameObject.activeSelf)
+                return t.name;
+        }
+        return "<unknown>";
     }
 
     /// <summary>
