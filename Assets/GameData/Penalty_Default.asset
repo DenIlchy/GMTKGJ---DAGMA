@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b22d2fa5fb2dd170023f7104087f67f4, type: 3}
   m_Name: Penalty_Default
   m_EditorClassIdentifier: 
-  stunDelay: 2
+  stunDelay: 6.92
   shootAnimationDuration: 0.3
