@@ -34,6 +34,11 @@ public class OpponentMovement : MonoBehaviour, IMovable
     private GameSys gameSys;
 
     public bool IsPlayer => false;
+    // Opponents do not currently track stun state at all (ApplyStunAnimation only fires the
+    // animator trigger and does not block movement), so returning false preserves today's
+    // behaviour; when the opponent gains a real stun presenter it will start participating
+    // in the gate automatically.
+    public bool IsStunned => false;
     public Transform MoverTransform => transform;
 
     private void Start()

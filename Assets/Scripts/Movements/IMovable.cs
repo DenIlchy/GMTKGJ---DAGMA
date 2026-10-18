@@ -7,5 +7,6 @@ public interface IMovable
     void SetMovementBlocked(bool blocked);
     void ApplyStunAnimation(float duration);
     bool IsPlayer { get; }
+    bool IsStunned { get; }
     Transform MoverTransform { get; }
 }

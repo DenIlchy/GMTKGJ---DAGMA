@@ -87,8 +87,8 @@ public class GameSys : MonoBehaviour
 
     private readonly MoverRegistry registry = new MoverRegistry();
     private readonly PhaseTimer phaseTimer = new PhaseTimer();
+    private MovementGate gate;
     private StartGate startGate;
-    private bool allMovementBlocked = true;
     private Coroutine gameLoopCoroutine;
     private bool gameEnded;
 
@@ -106,6 +106,10 @@ public class GameSys : MonoBehaviour
             return;
         }
         Instance = this;
+        // The gate needs to know whether a minigame is open — a policy input, not orchestration.
+        // Phase 3 will inject this through the context instead of reaching for the singleton.
+        gate = new MovementGate(registry, () => CurrentState,
+            () => MinigameManager.Instance != null && MinigameManager.Instance.IsMinigameActive);
         registry.OnMoverRegistered += HandleMoverRegistered;
         phaseTimer.OnTick += t => OnPhaseTimerUpdated?.Invoke(t);
     }
@@ -118,6 +122,12 @@ public class GameSys : MonoBehaviour
 
     private void Start()
     {
+        // Destroy() in Awake is deferred to the end of the frame, so a duplicate instance still
+        // reaches Start(). It must not warn, build a second game loop, or touch collaborators that
+        // Awake only created for the live instance.
+        if (Instance != this)
+            return;
+
         startGate.LogConfigurationWarnings();
 
         gameLoopCoroutine = StartCoroutine(GameLoop());
@@ -126,7 +136,7 @@ public class GameSys : MonoBehaviour
     private void HandleMoverRegistered(IMovable mover)
     {
         // A mover that registers after the loop already blocked everyone must not be left unblocked.
-        mover.SetMovementBlocked(allMovementBlocked);
+        gate.Apply(mover);
     }
 
     public void RegisterMover(IMovable mover)
@@ -208,12 +218,12 @@ public class GameSys : MonoBehaviour
 
     private void SetAllMovementBlocked(bool blocked)
     {
-        allMovementBlocked = blocked;
-        foreach (var mover in registry.Movers)
-        {
-            if (mover != null)
-                mover.SetMovementBlocked(blocked);
-        }
+        gate.SetPhaseBlocked(blocked);
+    }
+
+    public void ReevaluateMovement()
+    {
+        gate.Reevaluate();
     }
 
     public void ReportFinished(IMovable mover)

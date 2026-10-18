@@ -141,11 +141,8 @@ public class PlayerMovement : MonoBehaviour, IMovable
 
     private void HandleMinigameClosed()
     {
-        // Re-evaluate movement unblock when minigame UI closes
-        if (!isStunned && GameSys.Instance != null && GameSys.Instance.CurrentState == GameState.GreenLight)
-        {
-            SetMovementBlocked(false);
-        }
+        // The gate owns the unblock decision now — just ask for a re-check.
+        GameSys.Instance?.ReevaluateMovement();
     }
 
     private void Update()
@@ -279,6 +276,7 @@ public class PlayerMovement : MonoBehaviour, IMovable
     public float GetMaxSpeed() => MaxSpeed;
 
     public bool IsPlayer => true;
+    public bool IsStunned => isStunned;
     public Transform MoverTransform => transform;
 
     public void PushBack(float distance)
@@ -313,21 +311,13 @@ public class PlayerMovement : MonoBehaviour, IMovable
         }
 
         isStunned = false;
+        GameSys.Instance?.ReevaluateMovement();
     }
 
     private bool isStunned;
 
     public void SetMovementBlocked(bool blocked)
     {
-        bool isMinigameActive = MinigameManager.Instance != null && MinigameManager.Instance.IsMinigameActive;
-
-        // Allow unblocking ONLY if current state is GreenLight, player is not stunned, and no minigame is active
-        if (!blocked && (isStunned || isMinigameActive || (GameSys.Instance != null && GameSys.Instance.CurrentState != GameState.GreenLight)))
-        {
-            movementBlocked = true;
-            return;
-        }
-
         movementBlocked = blocked;
         if (blocked)
         {
