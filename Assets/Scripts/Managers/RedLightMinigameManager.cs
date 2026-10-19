@@ -198,7 +198,10 @@ public class RedLightMinigameManager : MonoBehaviour
             return;
         }
 
-        CharacterMinigames characterMinigames = playerTransform.GetComponent<CharacterMinigames>();
+        // Searched across the whole subtree, not just the mover's own GameObject: the character
+        // prefabs put CharacterMinigames on a child (e.g. the 'Pool' node) while PlayerMovement
+        // lives on the root. includeInactive, since that child may start deactivated.
+        CharacterMinigames characterMinigames = playerTransform.GetComponentInChildren<CharacterMinigames>(true);
         if (characterMinigames == null || characterMinigames.Pool == null)
         {
             WarnNotReadyOnce($"[RedLightMinigameManager] '{playerTransform.name}' is missing {(characterMinigames == null ? "a CharacterMinigames component" : "its pool asset")} — will retry; using the serialized minigame pool meanwhile.");

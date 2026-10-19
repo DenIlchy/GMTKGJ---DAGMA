@@ -312,6 +312,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4445870514525269395, guid: 5bbf2351d4b202d4982fb5a34e83b241, type: 3}
+      propertyPath: speedScrollbar
+      value: 
+      objectReference: {fileID: 2042919819}
     - target: {fileID: 4645832529528545691, guid: 5bbf2351d4b202d4982fb5a34e83b241, type: 3}
       propertyPath: m_Camera
       value: 
@@ -320,6 +324,10 @@ PrefabInstance:
       propertyPath: m_VertexColorAlwaysGammaSpace
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5150696152300636874, guid: 5bbf2351d4b202d4982fb5a34e83b241, type: 3}
+      propertyPath: m_Camera
+      value: 
+      objectReference: {fileID: 1672053879}
     - target: {fileID: 6917419954198481625, guid: 5bbf2351d4b202d4982fb5a34e83b241, type: 3}
       propertyPath: m_Name
       value: PlayerCharacter_Microwave
@@ -498,16 +506,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineRotationComposer
   Composition:
-    ScreenPosition: {x: 0, y: 0}
+    ScreenPosition: {x: 0, y: 0.45}
     DeadZone:
       Enabled: 0
       Size: {x: 0.2, y: 0.2}
     HardLimits:
       Enabled: 0
-      Size: {x: 0.8, y: 0.8}
+      Size: {x: 0.2, y: 0.2}
       Offset: {x: 0, y: 0}
   CenterOnActivate: 1
-  TargetOffset: {x: 4.5, y: 1.27, z: -23.3}
+  TargetOffset: {x: 0, y: 0, z: 0}
   Damping: {x: 0.5, y: 0.5}
   Lookahead:
     Enabled: 0
@@ -532,7 +540,7 @@ MonoBehaviour:
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
-  FollowOffset: {x: 4.75, y: 2.45, z: -5.71}
+  FollowOffset: {x: 0, y: 2.37, z: 4.44}
 --- !u!114 &473665603
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -584,8 +592,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 473665600}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.00023791524, y: 0.99941415, z: -0.033481132, w: -0.0071017877}
-  m_LocalPosition: {x: 4.75, y: 2.45, z: 54.29}
+  m_LocalRotation: {x: -8.661499e-11, y: 0.99853206, z: -0.054164533, w: -0.0000000015967614}
+  m_LocalPosition: {x: 0, y: 2.37, z: 64.44}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1440,7 +1448,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a9a4b73851c72846bea511fa082baa2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MinigameManager
-  currentMinigame: {fileID: 0}
+  currentMinigame: {fileID: 1340695548}
   autoReturnToGameplayCam: 1
   gameplayHud: {fileID: 109047200}
 --- !u!4 &999721580
@@ -2337,6 +2345,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1340695548 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6460460298998854052, guid: 5bbf2351d4b202d4982fb5a34e83b241, type: 3}
+  m_PrefabInstance: {fileID: 254045258}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fdbb8ae64c5f4646aee1767b2fb3ce8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PopcornMinigame
 --- !u!1 &1484849002
 GameObject:
   m_ObjectHideFlags: 0
@@ -2956,8 +2975,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1672053875}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.10305394, y: 0.0000000013871291, z: -1.4371428e-10, w: 0.99467576}
-  m_LocalPosition: {x: 4.79, y: 3.922158, z: 45.37221}
+  m_LocalRotation: {x: 0.16871804, y: -4.8273677e-23, z: 8.263097e-24, w: 0.98566437}
+  m_LocalPosition: {x: 0, y: 3.65, z: 55.21}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3041,6 +3060,67 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d79c76004dbb8404b98377e2768a1626, type: 3}
   m_PrefabInstance: {fileID: 1683509057}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1774020440
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1965611160763377977, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: m_Name
+      value: Rival_Microwave
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237612652468970302, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -12.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237612652468970302, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237612652468970302, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 58.54
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237612652468970302, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237612652468970302, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237612652468970302, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237612652468970302, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237612652468970302, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237612652468970302, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237612652468970302, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6650172954817060809, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
+      propertyPath: profile
+      value: 
+      objectReference: {fileID: 11400000, guid: bbb334723b1d846af9decf5230a35930, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: bbe844c11cf32854d96838179c07ec93, type: 3}
 --- !u!1 &1802641729
 GameObject:
   m_ObjectHideFlags: 0
@@ -3661,7 +3741,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44d70cc20219cd84593f67d248eafe36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCameraOffset
-  Offset: {x: 0, y: 0.84, z: 0}
+  Offset: {x: 0, y: 0, z: 0}
   ApplyAfter: 1
   PreserveComposition: 0
 --- !u!114 &1873690697
@@ -3686,8 +3766,8 @@ MonoBehaviour:
       Size: {x: 0.8, y: 0.8}
       Offset: {x: 0, y: 0}
   CenterOnActivate: 1
-  TargetOffset: {x: 4.79, y: 0, z: 0}
-  Damping: {x: 0.5, y: 0.5}
+  TargetOffset: {x: 0, y: -7.35, z: 26.4}
+  Damping: {x: 0, y: 0}
   Lookahead:
     Enabled: 0
     Time: 0
@@ -3711,7 +3791,7 @@ MonoBehaviour:
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
-  FollowOffset: {x: 4.79, y: 3.1, z: -14.8}
+  FollowOffset: {x: 0, y: 3.65, z: -4.79}
 --- !u!4 &1873690699
 Transform:
   m_ObjectHideFlags: 0
@@ -3720,8 +3800,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1873690694}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.103053935, y: 0.0000000013063703, z: 6.357669e-10, w: 0.9946758}
-  m_LocalPosition: {x: 4.79, y: 3.1, z: 45.2}
+  m_LocalRotation: {x: 0.16871803, y: -4.8408825e-23, z: 9.052656e-24, w: 0.98566437}
+  m_LocalPosition: {x: 0, y: 3.65, z: 55.21}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4194,7 +4274,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44d70cc20219cd84593f67d248eafe36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCameraOffset
-  Offset: {x: 0, y: 3.15, z: -5.88}
+  Offset: {x: 0, y: 4.73, z: -13.24}
   ApplyAfter: 1
   PreserveComposition: 0
 --- !u!114 &2104802222
@@ -4244,7 +4324,7 @@ MonoBehaviour:
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 0
-  FollowOffset: {x: 0, y: 0, z: 0}
+  FollowOffset: {x: 0, y: 3.65, z: -4.79}
 --- !u!114 &2104802224
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4296,8 +4376,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2104802220}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.10293745, y: -0.000000025102883, z: 0.0000000025978268, w: 0.99468786}
-  m_LocalPosition: {x: 0, y: 0, z: 60}
+  m_LocalRotation: {x: 0.1392382, y: -5.41637e-16, z: 1.0008066e-16, w: 0.99025893}
+  m_LocalPosition: {x: 0, y: 3.65, z: 55.21}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4536,3 +4616,4 @@ SceneRoots:
   - {fileID: 1847697806}
   - {fileID: 1666915972}
   - {fileID: 254045258}
+  - {fileID: 1774020440}

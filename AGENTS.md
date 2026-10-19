@@ -2,9 +2,9 @@
 - Project name: GMTKGJ---DAGMA
 - Unity version: Unity 6000.3.20f1
 - Active game object:
-  - Name: Rival_Base
+  - Name: CinemachineCamera_ArcApex
   - Tag: Untagged
-  - Layer: Rival
+  - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
 
 ## Compile gate
