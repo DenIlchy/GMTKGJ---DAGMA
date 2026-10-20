@@ -2,9 +2,9 @@
 - Project name: GMTKGJ---DAGMA
 - Unity version: Unity 6000.3.20f1
 - Active game object:
-  - Name: GameManager
+  - Name: Rival_Microwave
   - Tag: Untagged
-  - Layer: Default
+  - Layer: Rival
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
 
 ## Compile gate
