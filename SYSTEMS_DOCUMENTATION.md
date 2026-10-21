@@ -1,9 +1,30 @@
 # GMTKGJ --- DAGMA: Complete Systems Architecture & Documentation
 
+> [!CAUTION]
+> **HISTORICAL — describes the architecture before 2026-10-18. Do not trust this file.**
+>
+> It was written against `WorkingProto.unity` and the pre-refactor code. It is now known to be
+> wrong about at least the following, and probably more:
+>
+> - **Pushback owner** — it says `GameSys` applies pushback. `DAGMAPenaltyController` does, as part
+>   of the shoot → pushback → stun sequence.
+> - **Minigame pool** — it describes an Inspector `minigamePool` list of three minigames on
+>   `GameManager`. Pools are now per-character `CharacterMinigamePool` assets joined by string id.
+> - **Target scene** — the play scene is `Assets/Scenes/SysUpgrade.unity`.
+> - **`WatcherVisuals`** — the `signalRenderer` / green-red material it documents is gone; the
+>   component now drives `State`, `HasViolators` and `TargetType` animator parameters.
+> - **Scene hierarchy and characters** — characters are composed prefabs under
+>   `Assets/Prefabs/Characters/`, not loose `Char` / `Opponent_01` scene objects.
+> - **Tuning values** — all of them now live in ScriptableObjects under `Assets/GameData/`.
+>
+> **For current architecture, read `AGENTS.md` at the repo root** and the nested `AGENTS.md` files
+> under `Assets/Scripts/`. This file is kept only for the gameplay-design intent and the minigame
+> descriptions, which are still broadly accurate.
+
 > [!NOTE]
 > **Project Context:** GMTKGJ --- DAGMA  
 > **Engine Version:** Unity 6000.3.20f1  
-> **Target Scene:** `Assets/Scenes/WorkingProto.unity`  
+> **Target Scene:** `Assets/Scenes/WorkingProto.unity` *(historical — now `SysUpgrade.unity`)*  
 
 ---
 
