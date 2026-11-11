@@ -70,9 +70,11 @@ the player may not have registered yet, and characters can be spawned at runtime
 
 ## `DAGMAPenaltyController`
 
-Owns pushback **and** stun as one unit — `GameSys` no longer applies pushback. It only waits out
-`StunDelay` when the *player* was among the violators, so an AI-only violation doesn't stall the
-round.
+Owns pushback **and** stun as one unit — `GameSys` no longer applies pushback. It invokes its
+completion callback (which opens the minigame) right after impact, **not** after the stun —
+`StunDelay` is tunable and can outlast the red light, which used to push the minigame into the
+next phase. It still waits out `StunDelay` (player violators only) before
+`WatcherVisuals.ResetViolatorParameters`.
 
 `OnDAGMAShoot` is a `UnityEvent` for Inspector wiring. **It currently has zero persistent calls in
 `SysUpgrade.unity`** — if you expect a shot SFX/VFX from the penalty sequence, it is not wired up

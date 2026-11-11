@@ -10,7 +10,7 @@ public class DAGMAPenaltyController : MonoBehaviour
     [SerializeField] private PenaltyConfig penaltyConfig;
 
     [Header("Penalty Settings (Legacy)")]
-    [Tooltip("Duration of the target stun animation & minigame delay in seconds (editable in Inspector for balance).")]
+    [Tooltip("Duration of the target stun animation in seconds. Does not delay the minigame.")]
     public float stunDelay = 2.0f;
 
     [Tooltip("Simulated shoot animation duration before impact event fires.")]
@@ -78,15 +78,20 @@ public class DAGMAPenaltyController : MonoBehaviour
             violator.ApplyStunAnimation(StunDelay);
         }
 
-        // Step 3: Wait for stun animation delay before proceeding ONLY IF local player violated
+        // The minigame must open during Red Light; waiting out the stun (tunable, can exceed
+        // the red light) pushed it into the next phase.
+        Debug.Log("[DAGMAPenaltyController] Impact applied — opening minigame without waiting for stun.");
+        onComplete?.Invoke();
+
+        // Step 3: Wait for stun animation delay before resetting watcher visuals ONLY IF local player violated
         if (playerIsViolator && StunDelay > 0f)
         {
-            Debug.Log($"[DAGMAPenaltyController] Player violated! Delaying minigame opening by player stun delay ({StunDelay}s)...");
+            Debug.Log($"[DAGMAPenaltyController] Player violated! Waiting out player stun ({StunDelay}s) before resetting watcher visuals...");
             yield return new WaitForSeconds(StunDelay);
         }
         else
         {
-            Debug.Log("[DAGMAPenaltyController] Player is innocent! Proceeding immediately to minigame without stun delay.");
+            Debug.Log("[DAGMAPenaltyController] Player is innocent! Resetting watcher visuals immediately.");
         }
 
         if (WatcherVisuals.Instance != null)
@@ -95,7 +100,6 @@ public class DAGMAPenaltyController : MonoBehaviour
         }
 
         Debug.Log("[DAGMAPenaltyController] Penalty sequence complete.");
-        onComplete?.Invoke();
     }
 
     /// <summary>
